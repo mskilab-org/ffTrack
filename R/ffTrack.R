@@ -1372,8 +1372,8 @@ seq2fft = function(seq, ## BSGenome object, ffTrack object representing genomic 
     stop('Only BSGenome and ffTrack input for seq currently supported')
 }
 
-#' fftab
-#'
+#' @name fftab
+#' @title Tabulate data in an \code{ffTrack}
 #' @description
 #'
 #' Tabulates data in ffTrack file across a set of interavls (GRanges)

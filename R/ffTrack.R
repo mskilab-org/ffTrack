@@ -1404,6 +1404,7 @@ seq2fft = function(seq, ## BSGenome object, ffTrack object representing genomic 
 #' @param na.rm logical flag whether to remove na during aggregation.
 #' @importFrom data.table rbindlist data.table setkey :=
 #' @importFrom gUtils gr.sub seg2gr gr.stripstrand si2gr rle.query gr.fix gr.chr gr.tile grl.unlist gr.findoverlaps gr.dice
+#' @export
 fftab = function(ff, intervals, signatures = NULL, FUN = sum, grep = FALSE, mc.cores = 1, chunksize = 1e6, verbose = TRUE, na.rm = TRUE)
     {
 id = ix = NULL ## NOTE fix

@@ -4,8 +4,8 @@
 \alias{wig2fft}
 \title{Creates ffTrack object from input .wig file}
 \usage{
-wig2fft(wigpath, fftpath = gsub("(\\\\.wig.*)", ".rds", bwpath), chrsub = T,
-  verbose = F, buffer = 1e+05, skip.sweep = F,
+wig2fft(wigpath, fftpath = gsub("(\\\\.wig.*)", ".rds", wigpath),
+  chrsub = T, verbose = F, buffer = 1e+05, skip.sweep = F,
   seqlengths = hg_seqlengths(), vmode = "double", gz = grepl("\\\\.gz$",
   wigpath), bz2 = grepl("\\\\.bz2$", wigpath), min.gapwidth = 1000)
 }

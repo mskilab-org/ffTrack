@@ -10,9 +10,11 @@ fftab(ff, intervals, signatures = NULL, FUN = sum, grep = FALSE,
 \arguments{
 \item{ff}{ffTrack or RleList to pull data from}
 
+\item{intervals}{intervals}
+
 \item{signatures}{Signatures is a named list that specify what is to be tallied.  Each signature (ie list element)
 consist of an arbitrary length character vector specifying strings to %in% (grep = FALSE)
-or length 1 character vector to grepl (if grep = TRUE) 
+or length 1 character vector to grepl (if grep = TRUE)
 or a length 1 or 2 numeric vector specifying exact value or interval to match (for numeric data)
 
 Every list element of signature will become a metadata column in the output GRanges
@@ -34,7 +36,7 @@ specifying how many positions in the given interval match the given query}
 Tabulates data in ffTrack file across a set of interavls (GRanges)
 by counting the number of positions matching a given "signature" or
 applying FUN to aggregate data.  Returns the input GRanges populated with one or more meta data columns
-of counts or averages. 
+of counts or averages.
 
 Similar to gr.val in gUtils
 

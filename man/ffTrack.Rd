@@ -12,9 +12,15 @@ ffTrack(gr, filename, default.val = NA, overwrite = FALSE, levels = NULL,
 
 \item{filename}{filename to store the genomic data}
 
+\item{default.val}{default val}
+
 \item{overwrite}{whether to overwrite existing in the filena,me}
 
 \item{levels}{optional argument to specify unique levels for storage of factors,}
+
+\item{verbose}{Set verbosity}
+
+\item{vmode}{vmode}
 }
 \value{
 ffTrack object
@@ -24,7 +30,7 @@ Constructs new ffTrack for off-line storage of genomic data.  Allocates memory t
 (eg numeric, byte, character) data types across a fixed interval set "gr".  Useful for numeric (eg conservation track)
 or character (eg human genome sequence) data.  Physically instantiation will result in the creation of one or more
 "heavy" .ffData files and a lightweight .rds pointer which is the ffTrack object that is returned by this function.  That
-object can be read or written to using GRanges indices. 
+object can be read or written to using GRanges indices.
 
 Initialization requires (1) a filename (2) a set of GRanges corresponding to the "space"
 (3) a vmode (one of the following:
@@ -44,7 +50,7 @@ raw (8 bit unsigned char)
 character (character)
 
 Initialization will create two files (1) an .rds object meta data (2) .ffdata binary ff object
-These files should have static paths (i.e. should not be moved outside of R) - otherwise will break. 
+These files should have static paths (i.e. should not be moved outside of R) - otherwise will break.
 However the object will still be functional if the .rds file is moved to another location and loaded
 from there.
 

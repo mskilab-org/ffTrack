@@ -520,9 +520,11 @@ setMethod('mv', 'ffTrack', function(.Object, path, overwrite = F, keep.original 
 
         #.Object = readRDS(.Object@.rds.filename)
 
-        new.root.path = skitools::file.dir(path)
+        new.root.path = path
+        path <- gsub('(^|(.*\\/))?([^\\/]*)$', '\\2', path)
+        .file.name <- function(paths) return(gsub('(^|(.*\\/))?([^\\/]*)', '\\3', paths)) ## put here so don't rely on skitools
         if (!file.exists(.Object@.ff.filename))
-            if (all(file.exists(paste(new.root.path, skitools::file.name(sapply(c(list(.Object@.ff), .Object@.ffaux), filename)), sep = '/'))))
+            if (all(file.exists(paste(new.root.path, .file.name(sapply(c(list(.Object@.ff), .Object@.ffaux), filename)), sep = '/'))))
                 {
                     warning('not finding source .ff filenames, but finding .ffdata files that the ffTrack in this object used to point to.  Will try re
 building, by linking the GRanges and vmode info in this object with these .ff files')
@@ -536,7 +538,7 @@ building, by linking the GRanges and vmode info in this object with these .ff fi
             if (file.exists(path))
               {
                 if (file.info(path)$isdir)
-                  path = paste(path, skitools::file.name(Object@.rds.filename), sep = '/')
+                  path = paste(path, .file.name(Object@.rds.filename), sep = '/')
               }
             else if (grepl("\\/$", path))
               stop('directory does not exist, please create before moving / copying')
@@ -1480,7 +1482,7 @@ id = ix = NULL ## NOTE fix
         if (verbose)
             cat('Split intervals\n')
 
-        out = rbindlist(parallel::mclapply(chunks, function(ix)
+        ? cout = rbindlist(parallel::mclapply(chunks, function(ix)
             {
                 chunk = gr[ix]
                 if (verbose)

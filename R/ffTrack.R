@@ -53,10 +53,10 @@ setClass('ffTrack', representation(.ff = 'ff_vector', ## primary ff object
 setMethod('initialize', 'ffTrack', function(.Object,
                                             gr, ## GRanges of input ranges
                                             filename, ## filename (should have .rds suffix, if not, one will be appended
-                                            overwrite = T, ## whether to overwrite
+                                            overwrite = TRUE, ## whether to overwrite
                                             levels = NULL, ## vector of unique values (only for vmode of integer or integer-like)
                                             default.val = NA,
-                                            verbose = F,
+                                            verbose = FALSE,
                                             vmode = 'double') ## data mode (see above), scalar character)
           {
             MODES = c("boolean", "byte", "character", "complex", "double", "integer",
@@ -82,7 +82,7 @@ setMethod('initialize', 'ffTrack', function(.Object,
             ## touch the files
 
             if ((file.exists(filename) | file.exists(ff.filename)) & !overwrite)
-              stop('Target files already exist, to overwrite type overwrite = T')
+              stop('Target files already exist, to overwrite type overwrite = TRUE')
 
             writeLines('', filename)
             writeLines('', ff.filename)
@@ -242,7 +242,8 @@ setMethod('length', 'ffTrack', function(x)
 #'
 #' @export
 #' @author Marcin Imielinski
-#setGeneric('seqlengths', function(x) standardGeneric('seqlengths'))
+if (!isGeneric('seqlengths'))
+  setGeneric('seqlengths', function(x) standardGeneric('seqlengths'))
 setMethod('seqlengths', 'ffTrack', function(x)
           seqlengths(x@.gr))
 
@@ -254,18 +255,20 @@ setMethod('seqlengths', 'ffTrack', function(x)
 #'
 #' @export
 #' @author Marcin Imielinski
-#setGeneric('seqinfo', function(x) standardGeneric('seqinfo'))
+if (!isGeneric('seqinfo'))
+  setGeneric('seqinfo', function(x) standardGeneric('seqinfo'))
 setMethod('seqinfo', 'ffTrack', function(x)
           seqinfo(x@.gr))
 
 #' @name seqlevels
-#' @title description
-#'
+#' @title seqlevels of ffTrack object
+#' @description
 #' seqlevels of ffTrack object
 #'
 #' @export
 #' @author Marcin Imielinski
-#setGeneric('seqlevels', function(x) standardGeneric('seqlevels'))
+if (!isGeneric('seqlevels'))
+  setGeneric('seqlevels', function(x) standardGeneric('seqlevels'))
 setMethod('seqlevels', 'ffTrack', function(x)
           seqlevels(x@.gr))
 
@@ -328,28 +331,28 @@ setMethod('filename', 'ffTrack', function(x)
           c(ff = x@.ff.filename, rds = x@.rds.filename))
 
 #' @name cp
-#' @title cp
-#'
+#' @title copy ffTrack object to new path on the file system (and all data files)
+#' @description
 #' copy ffTrack object to new path on the file system (and all data files)
 #'
 #' @export
 #' @author Marcin Imielinski
-setGeneric('cp', function(.Object, path, overwrite = F) standardGeneric('cp'))
-setMethod('cp', 'ffTrack', function(.Object, path, overwrite = F)
+setGeneric('cp', function(.Object, path, overwrite = FALSE) standardGeneric('cp'))
+setMethod('cp', 'ffTrack', function(.Object, path, overwrite = FALSE)
           {
-            return(mv(.Object, path, overwrite = overwrite, keep.original = T))
+            return(mv(.Object, path, overwrite = overwrite, keep.original = TRUE))
           })
 
 
 #' @name del
-#' @title del
-#'
+#' @title delete ffTrack object (and all data files)
+#' @description
 #' delete ffTrack object (and all data files)
 #'
 #' @export
 #' @author Marcin Imielinski
-setGeneric('del', function(.Object, path, overwrite = F) standardGeneric('del'))
-setMethod('del', 'ffTrack', function(.Object, path, overwrite = F)
+setGeneric('del', function(.Object, path, overwrite = FALSE) standardGeneric('del'))
+setMethod('del', 'ffTrack', function(.Object, path, overwrite = FALSE)
           {
             fdel = c(.Object@.ff.filename, .Object@.rds.filename)
             if (length(.Object@.ffaux)>0)
@@ -367,9 +370,8 @@ setMethod('del', 'ffTrack', function(.Object, path, overwrite = F)
 
 
 #' @name writeable<-
-#' @title writeable<-
-#'
-#' toggle writeable status of ffTrack object
+#' @title toggle writeable status of ffTrack object
+#' @description toggle writeable status of ffTrack object
 #'
 #' @export
 #' @author Marcin Imielinski
@@ -383,12 +385,12 @@ setMethod('writeable<-', 'ffTrack', function(.Object, value)
               {
                 system(paste('chmod +w ', .Object@.ff.filename))
                 close.ff(.Object@.ff)
-                open.ff(.Object@.ff, readOnly = F)
+                open.ff(.Object@.ff, readOnly = FALSE)
               }
             else
               {
                 close.ff(.Object@.ff)
-                open.ff(.Object@.ff, readOnly = T)
+                open.ff(.Object@.ff, readOnly = TRUE)
               }
 
             return(.Object)
@@ -413,8 +415,8 @@ setMethod('writeable<-', 'ffTrack', function(.Object, value)
 #' @export
 #' @author Marcin Imielinski
 setMethod('[', 'ffTrack', function(x, i,
-                                   gr = F, ## if T will return GRanges with field $score populated w values
-                                   raw = F ## if T will not convert raw data to levels (if levels exist)
+                                   gr = FALSE, ## if T will return GRanges with field $score populated w values
+                                   raw = FALSE ## if T will not convert raw data to levels (if levels exist)
                                    )
           {
             if (inherits(i, 'GRangesList'))
@@ -495,11 +497,9 @@ setMethod('[', 'ffTrack', function(x, i,
             return(out)
           })
 
-
-
 #' @name writeable
 #' @title writeable
-#'
+#' @description
 #' access writeable status of ffTrack object
 #'
 #' @export
@@ -509,13 +509,13 @@ setMethod('writeable', 'ffTrack', function(.Object) file.access(.Object@.ff.file
 
 #' @name mv
 #' @title  mv
-#'
+#' @description
 #' moves location of .Object to new filepath, returns new updated object
 #'
 #' @export
 #' @author Marcin Imielinski
-setGeneric('mv', function(.Object, path, overwrite = F, keep.original = F) standardGeneric('mv'))
-setMethod('mv', 'ffTrack', function(.Object, path, overwrite = F, keep.original = F)
+setGeneric('mv', function(.Object, path, overwrite = FALSE, keep.original = FALSE) standardGeneric('mv'))
+setMethod('mv', 'ffTrack', function(.Object, path, overwrite = FALSE, keep.original = FALSE)
     {
 
         #.Object = readRDS(.Object@.rds.filename)
@@ -538,7 +538,7 @@ building, by linking the GRanges and vmode info in this object with these .ff fi
             if (file.exists(path))
               {
                 if (file.info(path)$isdir)
-                  path = paste(path, .file.name(Object@.rds.filename), sep = '/')
+                  path = paste(path, .file.name(.Object@.rds.filename), sep = '/')
               }
             else if (grepl("\\/$", path))
               stop('directory does not exist, please create before moving / copying')
@@ -550,7 +550,7 @@ building, by linking the GRanges and vmode info in this object with these .ff fi
             ff.path = gsub('\\.rds', '\\.ffdata', path)
 
             if ((file.exists(ff.path) | file.exists(path)) & !overwrite)
-              stop('One or more of the target paths exist, rerun with overwrite = F to overwrite')
+              stop('One or more of the target paths exist, rerun with overwrite = FALSE to overwrite')
 
             ff.aux.path = c()
             if (length(.Object@.ffaux))
@@ -558,7 +558,7 @@ building, by linking the GRanges and vmode info in this object with these .ff fi
                 {
                   ff.aux.path[i] = paste(ff.path, '.', i, sep = '')
                   if (file.exists(ff.aux.path[i]) & !overwrite)
-                    stop('One or more of the target paths exist, rerun with overwrite = F to overwrite')
+                    stop('One or more of the target paths exist, rerun with overwrite = FALSE to overwrite')
                 }
 
             fstring = 'cp %s %s'
@@ -586,7 +586,6 @@ building, by linking the GRanges and vmode info in this object with these .ff fi
           })
 
 
-#########
 #' @name [<-
 #' @title [<-
 #'
@@ -617,8 +616,7 @@ building, by linking the GRanges and vmode info in this object with these .ff fi
 #'
 #' @export
 #' @author Marcin Imielinski
-#########
-setMethod('[<-', 'ffTrack', function(x, i, value, op = NULL, raw = T, full = FALSE)
+setMethod('[<-', 'ffTrack', function(x, i, value, op = NULL, raw = TRUE, full = FALSE)
           {
             query = i;
 
@@ -693,7 +691,7 @@ setMethod('[<-', 'ffTrack', function(x, i, value, op = NULL, raw = T, full = FAL
                       values[j] = rev(values[j])
                   }
 
-                if (!(all(is.na(x@.levels))) & !raw) ## populate as factor if levels exist and raw = F
+                if (!(all(is.na(x@.levels))) & !raw) ## populate as factor if levels exist and raw = FALSE
                   x@.ff[s.ix[!aux.ix]] = factor(values[q.ix[!aux.ix]], x@.levels)
                 else
                     {
@@ -721,7 +719,7 @@ setMethod('[<-', 'ffTrack', function(x, i, value, op = NULL, raw = T, full = FAL
                         tmp.ix = which(aux.chunk == j)
 
                         if (!all(is.na(x@.levels)) & !raw) ## populate as factor if levels exist
-                          x@.ffaux[[j]][s.ix[aux.ix][tmp.ix] - j*s@.blocksize] =
+                          x@.ffaux[[j]][s.ix[aux.ix][tmp.ix] - j*x@.blocksize] =
                             factor(as.vector(values[q.ix[aux.ix][tmp.ix]]), x@.levels)
                         else
                             {
@@ -827,13 +825,13 @@ ffTrack = function(gr, filename, default.val = NA, overwrite = FALSE, levels = N
 bw2fft = function(bwpath,
   fftpath = gsub('(\\.bw.*)|(\\.bigwig.*)', '.rds', bwpath),
   region = NULL, # whether to limit to certain region (instead of whole genome)
-  chrsub = T, ## whether to sub in / sub out 'chr' when accessing bigwig file
+  chrsub = TRUE, ## whether to sub in / sub out 'chr' when accessing bigwig file
 #  mc.cores = 1, ## currently mc.cores can only be one (weird mclapply bug when running)
-  verbose = F,
+  verbose = FALSE,
   buffer = 1e5, # number of bases to access at a time
-  skip.sweep = F, # if TRUE will not sweep for covered region, just make a whole genome file or a file across provided regions
+  skip.sweep = FALSE, # if TRUE will not sweep for covered region, just make a whole genome file or a file across provided regions
   vmode = 'double',
-  resume = F,  ## in case something went wrong can update an existing file
+  resume = FALSE,  ## in case something went wrong can update an existing file
   min.gapwidth = 1e3 ## flank (to reduce the range complexity of the ffdata skeleton, but increase file size)
   )
   {
@@ -841,7 +839,7 @@ bw2fft = function(bwpath,
 
     if (!is.null(region))
       if (chrsub)
-        region = gr.fix(gr.chr(region), seqinfo(BigWigFile(normalizePath(bwpath))), drop = T)
+        region = gr.fix(gr.chr(region), seqinfo(BigWigFile(normalizePath(bwpath))), drop = TRUE)
 
     if (!skip.sweep)
       {
@@ -861,7 +859,7 @@ bw2fft = function(bwpath,
           {
             if (verbose)
               cat(x, ' ')
-            reduce(import.ucsc(bwpath, selection = tiles[x], chrsub = F), min.gapwidth = min.gapwidth)
+            reduce(import.ucsc(bwpath, selection = tiles[x], chrsub = FALSE), min.gapwidth = min.gapwidth)
           }, mc.cores = mc.cores)), min.gapwidth = min.gapwidth)
       }
     else if (!is.null(region))
@@ -920,11 +918,11 @@ bw2fft = function(bwpath,
 #' @export
 wig2fft = function(wigpath,
   fftpath = gsub('(\\.wig.*)', '.rds', wigpath),
-  chrsub = T, ## whether to sub in / sub out 'chr' when accessing wig file
+  chrsub = TRUE, ## whether to sub in / sub out 'chr' when accessing wig file
 #  mc.cores = 1, ## currently mc.cores can only be one (weird mclapply bug when running)
   verbose = F,
   buffer = 1e5, # number of bases to access at a time
-  skip.sweep = F, # if TRUE will not sweep for covered region, just make a whole genome file or a file across provided regions
+  skip.sweep = FALSE, # if TRUE will not sweep for covered region, just make a whole genome file or a file across provided regions
   seqlengths = hg_seqlengths(),
   vmode = 'double',
   gz = grepl('\\.gz$', wigpath),
@@ -980,7 +978,7 @@ wig2fft = function(wigpath,
 
         if (ncol == 4)
           {
-            tmp = tryCatch(matrix(unlist(strsplit(steps, '(\\:)|( )')), ncol = 4, byrow = T, dimnames = list(c(), col.names)), error = function(x) NULL)
+            tmp = tryCatch(matrix(unlist(strsplit(steps, '(\\:)|( )')), ncol = 4, byrow = TRUE, dimnames = list(c(), col.names)), error = function(x) NULL)
 
             if (is.null(steps))
               stop('FixedStep WIG file corrupt: make sure that every declaration line in file has same format with 4, 5, or 6 columns (+/- step, span) according to UCSC website')
@@ -989,11 +987,11 @@ wig2fft = function(wigpath,
               start = as.numeric(gsub('start\\=', '', tmp[, 'start'])),
               line = as.numeric(gsub('line\\=', '', tmp[, 'line'])),
               step = 1,
-              span = 1, stringsAsFactors = F)
+              span = 1, stringsAsFactors = FALSE)
           }
         else if (ncol == 5)
           {
-            tmp = tryCatch(matrix(unlist(strsplit(steps, '(\\:)|( )')), ncol = 5, byrow = T, dimnames = list(c(), col.names)), error = function(x) NULL)
+            tmp = tryCatch(matrix(unlist(strsplit(steps, '(\\:)|( )')), ncol = 5, byrow = TRUE, dimnames = list(c(), col.names)), error = function(x) NULL)
 
             if (is.null(steps))
               stop('FixedStep WIG file corrupt: make sure that every declaration line has same format with 5 or 6 columns (+/- span) according to UCSC website')
@@ -1002,11 +1000,11 @@ wig2fft = function(wigpath,
               start = as.numeric(gsub('start\\=', '', tmp[, 'start'])),
               line = as.numeric(gsub('line\\=', '', tmp[, 'line'])),
               step = as.numeric(gsub('step\\=', '', tmp[, 'step'])),
-              span = 1, stringsAsFactors = F)
+              span = 1, stringsAsFactors = FALSE)
           }
         else if (ncol == 6)
           {
-            tmp = tryCatch(matrix(unlist(strsplit(steps, '(\\:)|( )')), ncol = 5, byrow = T, dimnames = list(c(), col.names)), error = function(x) NULL)
+            tmp = tryCatch(matrix(unlist(strsplit(steps, '(\\:)|( )')), ncol = 5, byrow = TRUE, dimnames = list(c(), col.names)), error = function(x) NULL)
 
             if (is.null(tmp))
               stop('FixedStep WIG file corrupt: make sure that every declaration line has same format with 5 or 6 columns (+/- span) according to UCSC website')
@@ -1016,7 +1014,7 @@ wig2fft = function(wigpath,
              line = as.numeric(gsub('line\\=', '', tmp[, 'line'])),
              step = as.numeric(gsub('step\\=', '', tmp[, 'step'])),
              span = as.numeric(gsub('span\\=', '', tmp[, 'span'])),
-             stringsAsFactors = F)
+             stringsAsFactors = FALSE)
           }
         else
           stop('WIG file corrupt')
@@ -1113,7 +1111,7 @@ wig2fft = function(wigpath,
 #' Wrapper around getSeq which does the "chr" and seqnames conversion if necessary
 #' also handles GRangesList queries
 #'
-#' @param hg A BSgenome or and ffTrack object with levels = c('A','T','G','C','N')
+#' @param hg A BSgenome or and ffTrack object with levels = c('A','TRUE','G','C','N')
 #' @param gr GRanges object to define the ranges
 #' @param unlist logical whether to unlist the final output into a single DNAStringSet. Default TRUE
 #' @param mc.cores Optional multicore call. Default 1
@@ -1121,7 +1119,7 @@ wig2fft = function(wigpath,
 #' @param verbose Increase verbosity
 #' @return DNAStringSet of sequences
 #' @export
-get_seq = function(hg, gr, unlist = T, mc.cores = 1, mc.chunks = mc.cores,
+get_seq = function(hg, gr, unlist = TRUE, mc.cores = 1, mc.chunks = mc.cores,
                    as.data.table = FALSE, verbose = FALSE)
 {
   if (inherits(gr, 'GRangesList'))
@@ -1279,13 +1277,13 @@ seq2fft = function(seq, ## BSGenome object, ffTrack object representing genomic 
   fftpath,
   nnuc = 0, ## how many nucleotides to left and right to enumerate
   dict = NULL, ## this should be a character vector or DNAStringSet, overrides nnuc arg if not null
-  chrsub = T, ## whether to sub in / sub out 'chr' when accessing seq file
-  neg = F, ## whether to analyze sequence data on negative strand (i.e. motifs will be analyzed in rev complement)
+  chrsub = TRUE, ## whether to sub in / sub out 'chr' when accessing seq file
+  neg = FALSE, ## whether to analyze sequence data on negative strand (i.e. motifs will be analyzed in rev complement)
   region = NULL, # GRanges specifying region to limit to (instead of whole genome inferred from seq), strand is taken into account here!
   mc.cores = 1, ## currently mc.cores can only be one (weird mclapply bug when running)
-  verbose = F,
+  verbose = FALSE,
   buffer = 1e5, # number of bases to access at a time
-  skip.sweep = F, # if TRUE will not sweep for covered region, just make a whole genome file or a file across provided regions
+  skip.sweep = FALSE, # if TRUE will not sweep for covered region, just make a whole genome file or a file across provided regions
   vmode = 'ubyte',
   min.gapwidth = 1e3 ## flank (to reduce the range complexity of the ffdata skeleton, but increase file size)
   )
@@ -1304,12 +1302,12 @@ seq2fft = function(seq, ## BSGenome object, ffTrack object representing genomic 
 
       tiles = gr.tile(region, buffer)
 
-      context = F
+      context = FALSE
       if (is.null(dict))
         {
           DNA_BASES = c('A', 'G', 'C', 'T', 'N')
           dict = Biostrings::DNAStringSet(Biostrings::mkAllStrings(DNA_BASES, nnuc*2 + 1))
-          context = T
+          context = TRUE
         }
       else
         if (!is(dict, 'character'))
@@ -1363,7 +1361,7 @@ seq2fft = function(seq, ## BSGenome object, ffTrack object representing genomic 
                        ix = c(ix, rep(NA, pad))
                    }
 
-                 fft[tiles[x], raw = T] = list(ix)
+                 fft[tiles[x], raw = TRUE] = list(ix)
 
 
                }, mc.cores = mc.cores)
@@ -1405,7 +1403,7 @@ seq2fft = function(seq, ## BSGenome object, ffTrack object representing genomic 
 #' @param verbose logical flag
 #' @param na.rm logical flag whether to remove na during aggregation.
 #' @importFrom data.table rbindlist data.table setkey :=
-#' @importFrom gUtils gr.sub seg2gr gr.stripstrand si2gr rle.query gr.fix gr.chr gr.tile grl.unlist gr.findoverlaps gr.dice
+#' @importFrom gUtils gr.sub seg2gr gr.stripstrand si2gr rle.query gr.fix gr.chr gr.tile grl.unlist gr.findoverlaps gr.dice hg_seqlengths
 #' @export
 fftab = function(ff, intervals, signatures = NULL, FUN = sum, grep = FALSE, mc.cores = 1, chunksize = 1e6, verbose = TRUE, na.rm = TRUE)
     {
@@ -1482,7 +1480,7 @@ id = ix = NULL ## NOTE fix
         if (verbose)
             cat('Split intervals\n')
 
-        ? cout = rbindlist(parallel::mclapply(chunks, function(ix)
+        out = rbindlist(parallel::mclapply(chunks, function(ix)
             {
                 chunk = gr[ix]
                 if (verbose)

@@ -2,11 +2,12 @@
 % Please edit documentation in R/ffTrack.R
 \name{mv}
 \alias{mv}
-\title{mv
-
-moves location of .Object to new filepath, returns new updated object}
+\title{mv}
 \usage{
-mv(.Object, path, overwrite = F, keep.original = F)
+mv(.Object, path, overwrite = FALSE, keep.original = FALSE)
+}
+\description{
+moves location of .Object to new filepath, returns new updated object
 }
 \author{
 Marcin Imielinski

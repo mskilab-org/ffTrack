@@ -5,8 +5,8 @@
 \alias{[<-}
 \title{[<-}
 \usage{
-\S4method{[}{ffTrack,ANY,ANY,ANY}(x, i, op = NULL, raw = T, full = FALSE)
-  <- value
+\S4method{[}{ffTrack,ANY,ANY,ANY}(x, i, op = NULL, raw = TRUE,
+  full = FALSE) <- value
 }
 \arguments{
 \item{i}{GRanges specifying intervals of ffTrack to populate}

@@ -2,11 +2,12 @@
 % Please edit documentation in R/ffTrack.R
 \name{writeable}
 \alias{writeable}
-\title{writeable
-
-access writeable status of ffTrack object}
+\title{writeable}
 \usage{
 writeable(.Object)
+}
+\description{
+access writeable status of ffTrack object
 }
 \author{
 Marcin Imielinski

@@ -2,11 +2,12 @@
 % Please edit documentation in R/ffTrack.R
 \name{writeable<-}
 \alias{writeable<-}
-\title{writeable<-
-
-toggle writeable status of ffTrack object}
+\title{toggle writeable status of ffTrack object}
 \usage{
 writeable(.Object) <- value
+}
+\description{
+toggle writeable status of ffTrack object
 }
 \author{
 Marcin Imielinski

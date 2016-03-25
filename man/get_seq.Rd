@@ -4,11 +4,11 @@
 \alias{get_seq}
 \title{Retrieve genomic sequenes}
 \usage{
-get_seq(hg, gr, unlist = T, mc.cores = 1, mc.chunks = mc.cores,
+get_seq(hg, gr, unlist = TRUE, mc.cores = 1, mc.chunks = mc.cores,
   as.data.table = FALSE, verbose = FALSE)
 }
 \arguments{
-\item{hg}{A BSgenome or and ffTrack object with levels = c('A','T','G','C','N')}
+\item{hg}{A BSgenome or and ffTrack object with levels = c('A','TRUE','G','C','N')}
 
 \item{gr}{GRanges object to define the ranges}
 

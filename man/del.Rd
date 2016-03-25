@@ -2,11 +2,12 @@
 % Please edit documentation in R/ffTrack.R
 \name{del}
 \alias{del}
-\title{del
-
-delete ffTrack object (and all data files)}
+\title{delete ffTrack object (and all data files)}
 \usage{
-del(.Object, path, overwrite = F)
+del(.Object, path, overwrite = FALSE)
+}
+\description{
+delete ffTrack object (and all data files)
 }
 \author{
 Marcin Imielinski

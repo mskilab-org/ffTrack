@@ -2,11 +2,12 @@
 % Please edit documentation in R/ffTrack.R
 \name{cp}
 \alias{cp}
-\title{cp
-
-copy ffTrack object to new path on the file system (and all data files)}
+\title{copy ffTrack object to new path on the file system (and all data files)}
 \usage{
-cp(.Object, path, overwrite = F)
+cp(.Object, path, overwrite = FALSE)
+}
+\description{
+copy ffTrack object to new path on the file system (and all data files)
 }
 \author{
 Marcin Imielinski

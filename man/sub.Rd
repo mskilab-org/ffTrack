@@ -5,7 +5,7 @@
 \alias{[}
 \title{[}
 \usage{
-\S4method{[}{ffTrack,ANY,ANY}(x, i, gr = F, raw = F)
+\S4method{[}{ffTrack,ANY,ANY}(x, i, gr = FALSE, raw = FALSE)
 }
 \arguments{
 \item{i}{GRanges or GRangesList}

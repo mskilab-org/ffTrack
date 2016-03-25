@@ -52,13 +52,14 @@ setClass('ffTrack', representation(.ff = 'ff_vector', ## primary ff object
 
 setMethod('initialize', 'ffTrack', function(.Object,
                                             gr, ## GRanges of input ranges
-                                            filename, ## filename (should have .rds suffix, if not, one will be appended
-                                            overwrite = TRUE, ## whether to overwrite
-                                            levels = NULL, ## vector of unique values (only for vmode of integer or integer-like)
-                                            default.val = NA,
-                                            verbose = FALSE,
+                                            file.name, ## file.name (should have .rds suffix, if not, one will be appended
+                                            overwrite, ## whether to overwrite
+                                            levels, ## vector of unique values (only for vmode of integer or integer-like)
+                                            default.val,
+                                            verbose,
                                             vmode = 'double') ## data mode (see above), scalar character)
           {
+
             MODES = c("boolean", "byte", "character", "complex", "double", "integer",
                               "logical", "nibble", "quad", "raw", "short", "single", "ubyte", "ushort")
 
@@ -74,20 +75,20 @@ setMethod('initialize', 'ffTrack', function(.Object,
             .Object@.blocksize = .Machine$integer.max
             .Object@.gr = gr.stripstrand(gr[, 'ix.s'])
             .Object@.vmode = vmode[1]
-            if (!grepl('\\.rds$',  filename))
-              filename = paste(filename, '.rds', sep = '')
+            if (!grepl('\\.rds$',  file.name))
+              file.name = paste(file.name, '.rds', sep = '')
 
-            ff.filename = gsub('rds$', 'ffdata', filename)
+            ff.filename = gsub('rds$', 'ffdata', file.name)
 
             ## touch the files
 
-            if ((file.exists(filename) | file.exists(ff.filename)) & !overwrite)
+            if ((file.exists(file.name) | file.exists(ff.filename)) & !overwrite)
               stop('Target files already exist, to overwrite type overwrite = TRUE')
 
-            writeLines('', filename)
+            writeLines('', file.name)
             writeLines('', ff.filename)
 
-            .Object@.rds.filename = normalizePath(filename)
+            .Object@.rds.filename = normalizePath(file.name)
             .Object@.ff.filename = normalizePath(ff.filename)
 
             len = sum(as.numeric(width(gr)))
@@ -125,7 +126,7 @@ setMethod('initialize', 'ffTrack', function(.Object,
                 file.size = file.info(.Object@.ff.filename)$size / 1e6
 
                 if (length(.Object@.ffaux)>0)
-                  file.size = file.size + file.info(sapply(.Object@.ffaux, filename))$size/1e6
+                  file.size = file.size + file.info(sapply(.Object@.ffaux, file.name))$size/1e6
 
                 cat('Created ffTrack object with .rds file %s and .ffdata base file %s spanning %s block(s) occupying %sM of disk\n',
                     .Object@.rds.filename, .Object@.ff.filename, file.size)
@@ -142,15 +143,15 @@ setValidity('ffTrack', function(object)
 
               if (!file.exists(object@.ff.filename))
                 problems = c('ffdata file is missing')
-              else if (normalizePath(object@.ff.filename) != normalizePath(filename(object@.ff)))
+              else if (normalizePath(object@.ff.filename) != normalizePath(ff::filename(object@.ff)))
                 problems = c('ffTrack filename does not match .ffdata filename')
 
               if (length(object@.ffaux)>0)
                 for (i in 1:length(object@.ffaux))
                   {
-                    if (!file.exists(filename(object@.ffaux[[i]])))
+                    if (!file.exists(ff::filename(object@.ffaux[[i]])))
                       problems = c(problems, 'ffaux file is missing')
-                    else if (normalizePath(paste(object@.ff.filename, '.', i, sep = '')) != normalizePath(filename(object@.ffaux[[i]])))
+                    else if (normalizePath(paste(object@.ff.filename, '.', i, sep = '')) != normalizePath(ff::filename(object@.ffaux[[i]])))
                       problems = c(problems, 'ffaux object filename not compatible with .ff.filename')
                   }
 
@@ -234,6 +235,9 @@ setMethod('vmode', 'ffTrack', function(x)
 setMethod('length', 'ffTrack', function(x)
           sum(as.numeric(width(x@.gr))))
 
+#if (!isGeneric('seqlengths'))
+  setGeneric('seqlengths', function(x) standardGeneric('seqlengths'))
+
 #' @name seqlengths
 #' @title seqlengths
 #' @description
@@ -242,10 +246,11 @@ setMethod('length', 'ffTrack', function(x)
 #'
 #' @export
 #' @author Marcin Imielinski
-if (!isGeneric('seqlengths'))
-  setGeneric('seqlengths', function(x) standardGeneric('seqlengths'))
 setMethod('seqlengths', 'ffTrack', function(x)
           seqlengths(x@.gr))
+
+#if (!isGeneric('seqinfo'))
+  setGeneric('seqinfo', function(x) standardGeneric('seqinfo'))
 
 #' @name seqinfo
 #' @title seqinfo
@@ -255,10 +260,11 @@ setMethod('seqlengths', 'ffTrack', function(x)
 #'
 #' @export
 #' @author Marcin Imielinski
-if (!isGeneric('seqinfo'))
-  setGeneric('seqinfo', function(x) standardGeneric('seqinfo'))
 setMethod('seqinfo', 'ffTrack', function(x)
           seqinfo(x@.gr))
+
+#if (!isGeneric('seqlevels'))
+  setGeneric('seqlevels', function(x) standardGeneric('seqlevels'))
 
 #' @name seqlevels
 #' @title seqlevels of ffTrack object
@@ -267,8 +273,6 @@ setMethod('seqinfo', 'ffTrack', function(x)
 #'
 #' @export
 #' @author Marcin Imielinski
-if (!isGeneric('seqlevels'))
-  setGeneric('seqlevels', function(x) standardGeneric('seqlevels'))
 setMethod('seqlevels', 'ffTrack', function(x)
           seqlevels(x@.gr))
 
@@ -546,7 +550,6 @@ building, by linking the GRanges and vmode info in this object with these .ff fi
             if (!grepl('\\.rds$', path))
               path = paste(path, '.rds', sep = '')
 
-            browser()
             ff.path = gsub('\\.rds', '\\.ffdata', path)
 
             if ((file.exists(ff.path) | file.exists(path)) & !overwrite)
@@ -566,7 +569,7 @@ building, by linking the GRanges and vmode info in this object with these .ff fi
             newobj = .Object
             newobj@.rds.filename = path
             newobj@.ff.filename = ff.path
-            filename(newobj@.ff) = newobj@.ff.filename
+            ff::filename(newobj@.ff) = newobj@.ff.filename
 
             if (keep.original)
               system(sprintf(fstring, ff.path, .Object@.ff.filename))  ## reverse copy since ff already "moves" for us
@@ -574,9 +577,9 @@ building, by linking the GRanges and vmode info in this object with these .ff fi
             if (length(.Object@.ffaux)>0)
               for (i in 1:length(.Object@.ffaux))
                 {
-                  filename(newobj@.ffaux[[i]]) = ff.aux.path[i]
+                ff::filename(newobj@.ffaux[[i]]) = ff.aux.path[i]
                   if (keep.original)
-                    system(sprintf(fstring, ff.aux.path[i], filename(.Object@.ffaux[[i]]))) ## reverse copy since ff already "moves" for us
+                    system(sprintf(fstring, ff.aux.path[i], ff::filename(.Object@.ffaux[[i]]))) ## reverse copy since ff already "moves" for us
                 }
 
             saveRDS(newobj, path)
@@ -755,29 +758,31 @@ setMethod('[<-', 'ffTrack', function(x, i, value, op = NULL, raw = TRUE, full = 
 #' @title ffTrack
 #' @description
 #'
-#' Constructs new ffTrack for off-line storage of genomic data.  Allocates memory to store one of several data "movdes"
-#' (eg numeric, byte, character) data types across a fixed interval set "gr".  Useful for numeric (eg conservation track)
-#' or character (eg human genome sequence) data.  Physically instantiation will result in the creation of one or more
+#' Constructs new \code{ffTrack} for off-line storage of genomic data.  Allocates memory to store one of several data "modes"
+#' (e.g. \code{numeric}, \code{byte}, \code{character}) data types across a fixed interval set (\code{GRanges}).
+#' Useful for numeric (e.g. conservation track)
+#' or character (e.g. human genome sequence) data. Physical instantiation will result in the creation of one or more
 #' "heavy" .ffData files and a lightweight .rds pointer which is the ffTrack object that is returned by this function.  That
 #' object can be read or written to using GRanges indices.
 #'
 #' Initialization requires (1) a filename (2) a set of GRanges corresponding to the "space"
 #' (3) a vmode (one of the following:
-#' boolean (1 bit logical)
-#' logical (2 bit logical + NA)
-#' quad (2 bit unsigned integer without NA)
-#' nibble (4 bit unsigned integer without NA)
-#' byte (8 bit signed integer with NA)
-#' ubyte (8 bit unsigned integer without NA)
-#' short (16 bit signed integer with NA)
-#' ushort (16 bit unsigned integer without NA)
-#' integer (32 bit signed integer with NA)
-#' single (32 bit float)
-#' double (64 bit float)
-#' complex (2 x 64 bit float),
-#' raw (8 bit unsigned char)
-#' character (character)
-#'
+#' \itemize{
+#' \item boolean (1 bit logical)
+#' \item logical (2 bit logical + NA)
+#' \item quad (2 bit unsigned integer without NA)
+#' \item nibble (4 bit unsigned integer without NA)
+#' \item byte (8 bit signed integer with NA)
+#' \item ubyte (8 bit unsigned integer without NA)
+#' \item short (16 bit signed integer with NA)
+#' \item ushort (16 bit unsigned integer without NA)
+#' \item integer (32 bit signed integer with NA)
+#' \item single (32 bit float)
+#' \item double (64 bit float)
+#' \item complex (2 x 64 bit float),
+#' \item raw (8 bit unsigned char)
+#' \item character (character)
+#' }
 #' Initialization will create two files (1) an .rds object meta data (2) .ffdata binary ff object
 #' These files should have static paths (i.e. should not be moved outside of R) - otherwise will break.
 #' However the object will still be functional if the .rds file is moved to another location and loaded
@@ -787,18 +792,18 @@ setMethod('[<-', 'ffTrack', function(x, i, value, op = NULL, raw = TRUE, full = 
 #' values to integers prior to storing.  In the file, levels will be indexed with 0-based indices (i.e. 0 will refer to the
 #' the first level item)
 #'
-#' @param gr GRanges of input ranges
-#' @param filename filename to store the genomic data
-#' @param overwrite whether to overwrite existing in the filena,me
-#' @param levels optional argument to specify unique levels for storage of factors,
+#' @param gr \code{GRanges} of input ranges
+#' @param file.name Filename to store the genomic data
+#' @param overwrite Whether to overwrite existing in the filename
+#' @param levels Optional argument to specify unique levels for storage of factors,
 #' @param default.val default val
 #' @param verbose Set verbosity
 #' @param vmode vmode
 #' @return ffTrack object
 #' @export
 #' @author Marcin Imielinski
-ffTrack = function(gr, filename, default.val = NA, overwrite = FALSE, levels = NULL, verbose = FALSE, vmode = 'double',...)
-    new('ffTrack', gr = gr, filename = filename, default.val = default.val, overwrite = overwrite, levels = levels, verbose = verbose, vmode = vmode, ...)
+ffTrack = function(gr, file.name, default.val = NA, overwrite = FALSE, levels = NULL, verbose = FALSE, vmode = 'double',...)
+    new('ffTrack', gr = gr, file.name = file.name, default.val = default.val, overwrite = overwrite, levels = levels, verbose = verbose, vmode = vmode, ...)
 
 
 #' @name bw2fft

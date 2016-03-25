@@ -1,25 +1,26 @@
 Package: ffTrack
 Title: Class for out-of-core GRanges based access for giant numeric genomic data
-    tracks using ff package.
+    tracks using ff package
 Version: 0.0.0.9000
 Author: Marcin Imielinski <mimielinski@nygenome.org>
 Maintainer: Marcin Imielinski <mimielinski@nygenome.org>
-Description: Allows building of objects of large genomically-indexed base-
+Description: ffTrack allows building of objects of large genomically-indexed base-
     resolution sequence or numeric data for quasi-random out of memory access.
     ffTrack objects are indexable using GRanges from GenomicRanges package.
-    Underlying files are written as .ffData objects using the ff package
+    Underlying files are written as .ffData objects using the ff package.
 Imports:
     rtracklayer (>= 1.25),
     gUtils (>= 0.1),
-    ff (>= 2.2),
     data.table,
     Biostrings,
     parallel,
     methods,
-    S4Vectors
+    S4Vectors,
+    GenomicRanges (>= 1.18)
 Depends:
     R (>= 3.1.0),
-    GenomicRanges (>= 1.18)
+    ff (>= 2.2)
 License: MIT + file LICENSE
 LazyData: true
 RoxygenNote: 5.0.1
+Suggests: testthat

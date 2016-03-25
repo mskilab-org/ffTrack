@@ -4,19 +4,19 @@
 \alias{ffTrack}
 \title{ffTrack}
 \usage{
-ffTrack(gr, filename, default.val = NA, overwrite = FALSE, levels = NULL,
+ffTrack(gr, file.name, default.val = NA, overwrite = FALSE, levels = NULL,
   verbose = FALSE, vmode = "double", ...)
 }
 \arguments{
-\item{gr}{GRanges of input ranges}
+\item{gr}{\code{GRanges} of input ranges}
 
-\item{filename}{filename to store the genomic data}
+\item{file.name}{Filename to store the genomic data}
 
 \item{default.val}{default val}
 
-\item{overwrite}{whether to overwrite existing in the filena,me}
+\item{overwrite}{Whether to overwrite existing in the filename}
 
-\item{levels}{optional argument to specify unique levels for storage of factors,}
+\item{levels}{Optional argument to specify unique levels for storage of factors,}
 
 \item{verbose}{Set verbosity}
 
@@ -26,29 +26,31 @@ ffTrack(gr, filename, default.val = NA, overwrite = FALSE, levels = NULL,
 ffTrack object
 }
 \description{
-Constructs new ffTrack for off-line storage of genomic data.  Allocates memory to store one of several data "movdes"
-(eg numeric, byte, character) data types across a fixed interval set "gr".  Useful for numeric (eg conservation track)
-or character (eg human genome sequence) data.  Physically instantiation will result in the creation of one or more
+Constructs new \code{ffTrack} for off-line storage of genomic data.  Allocates memory to store one of several data "modes"
+(e.g. \code{numeric}, \code{byte}, \code{character}) data types across a fixed interval set (\code{GRanges}).
+Useful for numeric (e.g. conservation track)
+or character (e.g. human genome sequence) data. Physical instantiation will result in the creation of one or more
 "heavy" .ffData files and a lightweight .rds pointer which is the ffTrack object that is returned by this function.  That
 object can be read or written to using GRanges indices.
 
 Initialization requires (1) a filename (2) a set of GRanges corresponding to the "space"
 (3) a vmode (one of the following:
-boolean (1 bit logical)
-logical (2 bit logical + NA)
-quad (2 bit unsigned integer without NA)
-nibble (4 bit unsigned integer without NA)
-byte (8 bit signed integer with NA)
-ubyte (8 bit unsigned integer without NA)
-short (16 bit signed integer with NA)
-ushort (16 bit unsigned integer without NA)
-integer (32 bit signed integer with NA)
-single (32 bit float)
-double (64 bit float)
-complex (2 x 64 bit float),
-raw (8 bit unsigned char)
-character (character)
-
+\itemize{
+\item boolean (1 bit logical)
+\item logical (2 bit logical + NA)
+\item quad (2 bit unsigned integer without NA)
+\item nibble (4 bit unsigned integer without NA)
+\item byte (8 bit signed integer with NA)
+\item ubyte (8 bit unsigned integer without NA)
+\item short (16 bit signed integer with NA)
+\item ushort (16 bit unsigned integer without NA)
+\item integer (32 bit signed integer with NA)
+\item single (32 bit float)
+\item double (64 bit float)
+\item complex (2 x 64 bit float),
+\item raw (8 bit unsigned char)
+\item character (character)
+}
 Initialization will create two files (1) an .rds object meta data (2) .ffdata binary ff object
 These files should have static paths (i.e. should not be moved outside of R) - otherwise will break.
 However the object will still be functional if the .rds file is moved to another location and loaded

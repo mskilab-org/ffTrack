@@ -25,21 +25,22 @@
 
 
 setOldClass('ff_vector')
-# setOldClass("GRanges") 
+# setOldClass("GRanges")
 
 #' @name ffTrack-class
 #' @title ffTrack-class
 #' @rdname ffTrack-class
 #' @description
-#' 
+#'
 #' class::ffTrack
 #'
-#' Class \code{ffTrack} a pointer for rapid GRanges-based access to genomic data on disk. 
+#' Class \code{ffTrack} a pointer for rapid GRanges-based access to genomic data on disk.
 #'
-#' @import ff
-#' @import gUtils
 #' @import GenomicRanges
-#' @import rtracklayer
+#' @importFrom ff ff is.readonly close.ff open.ff
+#' @importFrom methods setClass setGeneric setMethod setRefClass
+#' @importFrom S4Vectors Rle
+#' @importFrom Biostrings DNAStringSet
 #' @exportClass ffTrack
 #' @author Marcin Imielinski
 setClass('ffTrack', representation(.ff = 'ff_vector', ## primary ff object
@@ -51,13 +52,14 @@ setClass('ffTrack', representation(.ff = 'ff_vector', ## primary ff object
 
 setMethod('initialize', 'ffTrack', function(.Object,
                                             gr, ## GRanges of input ranges
-                                            filename, ## filename (should have .rds suffix, if not, one will be appended
-                                            overwrite = T, ## whether to overwrite
-                                            levels = NULL, ## vector of unique values (only for vmode of integer or integer-like)
-                                            default.val = NA,
-                                            verbose = F, 
+                                            file.name, ## file.name (should have .rds suffix, if not, one will be appended
+                                            overwrite, ## whether to overwrite
+                                            levels, ## vector of unique values (only for vmode of integer or integer-like)
+                                            default.val,
+                                            verbose,
                                             vmode = 'double') ## data mode (see above), scalar character)
           {
+
             MODES = c("boolean", "byte", "character", "complex", "double", "integer",
                               "logical", "nibble", "quad", "raw", "short", "single", "ubyte", "ushort")
 
@@ -73,29 +75,29 @@ setMethod('initialize', 'ffTrack', function(.Object,
             .Object@.blocksize = .Machine$integer.max
             .Object@.gr = gr.stripstrand(gr[, 'ix.s'])
             .Object@.vmode = vmode[1]
-            if (!grepl('\\.rds$',  filename))
-              filename = paste(filename, '.rds', sep = '')
+            if (!grepl('\\.rds$',  file.name))
+              file.name = paste(file.name, '.rds', sep = '')
 
-            ff.filename = gsub('rds$', 'ffdata', filename)
-            
+            ff.filename = gsub('rds$', 'ffdata', file.name)
+
             ## touch the files
-            
-            if ((file.exists(filename) | file.exists(ff.filename)) & !overwrite)
-              stop('Target files already exist, to overwrite type overwrite = T')
-            
-            writeLines('', filename)
+
+            if ((file.exists(file.name) | file.exists(ff.filename)) & !overwrite)
+              stop('Target files already exist, to overwrite type overwrite = TRUE')
+
+            writeLines('', file.name)
             writeLines('', ff.filename)
-            
-            .Object@.rds.filename = normalizePath(filename)
+
+            .Object@.rds.filename = normalizePath(file.name)
             .Object@.ff.filename = normalizePath(ff.filename)
-                       
+
             len = sum(as.numeric(width(gr)))
 
-            #allocate                          
+            #allocate
             .Object@.ff = ff(default.val, length = pmin(len, .Object@.blocksize), vmode = .Object@.vmode, filename = .Object@.ff.filename, overwrite = overwrite)
             .Object@.ffaux = list()
-            .Object@.length = len            
-            
+            .Object@.length = len
+
             if (len > .Object@.blocksize)
               {
                 newlen = len - .Object@.blocksize;
@@ -107,16 +109,16 @@ setMethod('initialize', 'ffTrack', function(.Object,
                     i = i + 1
                   }
               }
-            
+
             ## don't allow factors for character vmode (remember vmode refers to the actual stored value, characters can be represented
             ## as factors by providing a 'character' level
             if (!(vmode %in% c('character')) & !is.null(levels))
               .Object@.levels = levels
             else
               .Object@.levels = NA
-            
+
             saveRDS(.Object, .Object@.rds.filename)
-            
+
             validObject(.Object)
 
             if (verbose)
@@ -124,15 +126,15 @@ setMethod('initialize', 'ffTrack', function(.Object,
                 file.size = file.info(.Object@.ff.filename)$size / 1e6
 
                 if (length(.Object@.ffaux)>0)
-                  file.size = file.size + file.info(sapply(.Object@.ffaux, filename))$size/1e6
-                
+                  file.size = file.size + file.info(sapply(.Object@.ffaux, file.name))$size/1e6
+
                 cat('Created ffTrack object with .rds file %s and .ffdata base file %s spanning %s block(s) occupying %sM of disk\n',
                     .Object@.rds.filename, .Object@.ff.filename, file.size)
               }
 
             print(.Object)
-                                     
-            return(.Object)            
+
+            return(.Object)
           })
 
 setValidity('ffTrack', function(object)
@@ -141,21 +143,21 @@ setValidity('ffTrack', function(object)
 
               if (!file.exists(object@.ff.filename))
                 problems = c('ffdata file is missing')
-              else if (normalizePath(object@.ff.filename) != normalizePath(filename(object@.ff)))
+              else if (normalizePath(object@.ff.filename) != normalizePath(ff::filename(object@.ff)))
                 problems = c('ffTrack filename does not match .ffdata filename')
 
               if (length(object@.ffaux)>0)
                 for (i in 1:length(object@.ffaux))
                   {
-                    if (!file.exists(filename(object@.ffaux[[i]])))
-                      problems = c(problems, 'ffaux file is missing')              
-                    else if (normalizePath(paste(object@.ff.filename, '.', i, sep = '')) != normalizePath(filename(object@.ffaux[[i]])))
+                    if (!file.exists(ff::filename(object@.ffaux[[i]])))
+                      problems = c(problems, 'ffaux file is missing')
+                    else if (normalizePath(paste(object@.ff.filename, '.', i, sep = '')) != normalizePath(ff::filename(object@.ffaux[[i]])))
                       problems = c(problems, 'ffaux object filename not compatible with .ff.filename')
                   }
-              
+
               if (!file.exists(object@.rds.filename))
                 problems = c('rds file is missing')
-              
+
               if (!grepl('\\.ffdata$', object@.ff.filename))
                 problems = c('ffTrack ff filename does not end in .ffdata')
 
@@ -168,7 +170,7 @@ setValidity('ffTrack', function(object)
               if (!is.null(object@.gr$ix.s))
                 if (any(is.na(object@.gr$ix.s)))
                   problems = c('internal gRanges ix.s data field is corrupt')
-              
+
               if (length(problems)==0)
                 TRUE
               else
@@ -182,7 +184,7 @@ setMethod('show', 'ffTrack', function(object)
 
             if (length(object@.ffaux)>0)
                 fn = paste(c(fn, sapply(object@.ffaux, filename)), collapse = ', ')
-                        
+
             cat(sprintf('ffTrack object of vmode %s of ffdata filename(s) %s comprising %sM of disk space and %s GRanges: \n', vmode(object), fn, round(size(object), 2), length(object@.gr)))
           })
 
@@ -200,7 +202,7 @@ setMethod('size', 'ffTrack', function(object)
             fn = object@.ff.filename
 
             sz = as.numeric(file.info(fn)$size / 1e6)
-            
+
              if (length(object@.ffaux)>0)
                {
                  fn = sapply(object@.ffaux, filename)
@@ -212,7 +214,7 @@ setMethod('size', 'ffTrack', function(object)
 #' @name vmode
 #' @title vmode
 #' @description
-#' 
+#'
 #' vmode of ffTrack object
 #'
 #' @export
@@ -227,44 +229,50 @@ setMethod('vmode', 'ffTrack', function(x)
 #' @description
 #'
 #' length of ffTrack object
-#' 
+#'
 #' @export
 #' @author Marcin Imielinski
 setMethod('length', 'ffTrack', function(x)
           sum(as.numeric(width(x@.gr))))
+
+#if (!isGeneric('seqlengths'))
+  setGeneric('seqlengths', function(x) standardGeneric('seqlengths'))
 
 #' @name seqlengths
 #' @title seqlengths
 #' @description
 #'
 #' size of ffTrack object
-#' 
+#'
 #' @export
 #' @author Marcin Imielinski
-#setGeneric('seqlengths', function(x) standardGeneric('seqlengths'))
 setMethod('seqlengths', 'ffTrack', function(x)
           seqlengths(x@.gr))
+
+#if (!isGeneric('seqinfo'))
+  setGeneric('seqinfo', function(x) standardGeneric('seqinfo'))
 
 #' @name seqinfo
 #' @title seqinfo
 #' @description
-#' 
+#'
 #' size of ffTrack object
-#' 
+#'
 #' @export
 #' @author Marcin Imielinski
-#setGeneric('seqinfo', function(x) standardGeneric('seqinfo'))
 setMethod('seqinfo', 'ffTrack', function(x)
           seqinfo(x@.gr))
 
+#if (!isGeneric('seqlevels'))
+  setGeneric('seqlevels', function(x) standardGeneric('seqlevels'))
+
 #' @name seqlevels
-#' @title description
-#' 
+#' @title seqlevels of ffTrack object
+#' @description
 #' seqlevels of ffTrack object
-#' 
+#'
 #' @export
 #' @author Marcin Imielinski
-#setGeneric('seqlevels', function(x) standardGeneric('seqlevels'))
 setMethod('seqlevels', 'ffTrack', function(x)
           seqlevels(x@.gr))
 
@@ -273,7 +281,7 @@ setMethod('seqlevels', 'ffTrack', function(x)
 #' @description
 #'
 #' get levels of ffTrack object
-#' 
+#'
 #' @export
 #' @author Marcin Imielinski
 setMethod('levels', 'ffTrack', function(x)
@@ -285,14 +293,14 @@ setMethod('levels', 'ffTrack', function(x)
 #' @description
 #'
 #' set levels of ffTrack object
-#' 
+#'
 #' @export
 #' @author Marcin Imielinski
 setMethod('levels<-', 'ffTrack', function(x, value)
           {
             if (!all(is.na(x@.levels)))
-              stop('Levels not defined in original ffTrack instantiation, please re-instantiate to add levels')              
-              
+              stop('Levels not defined in original ffTrack instantiation, please re-instantiate to add levels')
+
             if (is.vector(value) & length(value) == length(x@.levels))
               x@.levels = value
             else
@@ -305,7 +313,7 @@ setMethod('levels<-', 'ffTrack', function(x, value)
 #' @name ranges
 #' @title ranges
 #' @description
-#' 
+#'
 #' ranges underlying ffTrack object
 #'
 #' @export
@@ -317,7 +325,7 @@ setMethod('ranges', 'ffTrack', function(x)
 #' @name filename
 #' @title filename
 #' @description
-#' 
+#'
 #' filename associated with ffTrack object
 #'
 #' @export
@@ -327,29 +335,29 @@ setMethod('filename', 'ffTrack', function(x)
           c(ff = x@.ff.filename, rds = x@.rds.filename))
 
 #' @name cp
-#' @title cp
-#' 
+#' @title copy ffTrack object to new path on the file system (and all data files)
+#' @description
 #' copy ffTrack object to new path on the file system (and all data files)
-#' 
+#'
 #' @export
 #' @author Marcin Imielinski
-setGeneric('cp', function(.Object, path, overwrite = F) standardGeneric('cp'))
-setMethod('cp', 'ffTrack', function(.Object, path, overwrite = F)
+setGeneric('cp', function(.Object, path, overwrite = FALSE) standardGeneric('cp'))
+setMethod('cp', 'ffTrack', function(.Object, path, overwrite = FALSE)
           {
-            return(mv(.Object, path, overwrite = overwrite, keep.original = T))
+            return(mv(.Object, path, overwrite = overwrite, keep.original = TRUE))
           })
 
 
 #' @name del
-#' @title del
-#' 
+#' @title delete ffTrack object (and all data files)
+#' @description
 #' delete ffTrack object (and all data files)
-#' 
+#'
 #' @export
 #' @author Marcin Imielinski
-setGeneric('del', function(.Object, path, overwrite = F) standardGeneric('del'))
-setMethod('del', 'ffTrack', function(.Object, path, overwrite = F)
-          {            
+setGeneric('del', function(.Object, path, overwrite = FALSE) standardGeneric('del'))
+setMethod('del', 'ffTrack', function(.Object, path, overwrite = FALSE)
+          {
             fdel = c(.Object@.ff.filename, .Object@.rds.filename)
             if (length(.Object@.ffaux)>0)
               fdel = c(fdel, sapply(.Object@.ffaux, filename))
@@ -360,16 +368,15 @@ setMethod('del', 'ffTrack', function(.Object, path, overwrite = F)
                 cat(sprintf('Removed files: %s\n', paste(fdel, collapse = ', ')))
               }
             else
-              cat('Object files already deleted')                 
-            
+              cat('Object files already deleted')
+
           })
 
 
 #' @name writeable<-
-#' @title writeable<-
-#' 
-#' toggle writeable status of ffTrack object
-#' 
+#' @title toggle writeable status of ffTrack object
+#' @description toggle writeable status of ffTrack object
+#'
 #' @export
 #' @author Marcin Imielinski
 setGeneric('writeable<-', function(.Object, value) standardGeneric('writeable<-'))
@@ -382,14 +389,14 @@ setMethod('writeable<-', 'ffTrack', function(.Object, value)
               {
                 system(paste('chmod +w ', .Object@.ff.filename))
                 close.ff(.Object@.ff)
-                open(Object@.ff, readOnly = F)
+                open.ff(.Object@.ff, readOnly = FALSE)
               }
             else
               {
                 close.ff(.Object@.ff)
-                open(Object@.ff, readOnly = T)
+                open.ff(.Object@.ff, readOnly = TRUE)
               }
-              
+
             return(.Object)
           })
 
@@ -402,18 +409,18 @@ setMethod('writeable<-', 'ffTrack', function(.Object, value)
 #' data from the corresponding ranges.
 #'
 #' Strand is taken into account here - i.e. a negative range will yield reversed data (note: not reverse complement)
-#' 
-#' 
+#'
+#'
 #' @param i GRanges or GRangesList
 #' @param gr logical flag whether to return GRanges with field $Score populated with values (=FALSE)
 #' @param raw logical flag whether to convert raw data to levels (if levels exist) (=FALSE)
 #' @return either vector (if i is a GRanges) or vector list (if i is a GRangesList)
-#' 
+#'
 #' @export
 #' @author Marcin Imielinski
 setMethod('[', 'ffTrack', function(x, i,
-                                   gr = F, ## if T will return GRanges with field $score populated w values
-                                   raw = F ## if T will not convert raw data to levels (if levels exist)
+                                   gr = FALSE, ## if T will return GRanges with field $score populated w values
+                                   raw = FALSE ## if T will not convert raw data to levels (if levels exist)
                                    )
           {
             if (inherits(i, 'GRangesList'))
@@ -424,44 +431,44 @@ setMethod('[', 'ffTrack', function(x, i,
               stop('ffTrack accessor index must be a GRanges or GRangesList')
 
             out = rep(NA, sum(as.numeric(width(query))))
-                        
+
             ov = gr.findoverlaps(query, x@.gr)
 
             if (length(ov)>0)
-              {            
-##                 ov.ix.s = c(1, 1 + cumsum(width(ov))[-length(ov)])                
+              {
+##                 ov.ix.s = c(1, 1 + cumsum(width(ov))[-length(ov)])
 ##                 q.ix1 = start(ov) - start(query)[ov$query.id] + ov.ix.s
 ##                 q.ix2 = end(ov) - start(query)[ov$query.id] + ov.ix.s
 
                 q.ix.s = c(1, 1 + cumsum(width(query))[-length(query)])
                 q.ix1 = start(ov) - start(query)[ov$query.id] + q.ix.s[ov$query.id]
                 q.ix2 = end(ov) - start(query)[ov$query.id] + q.ix.s[ov$query.id]
-                
+
                 s.ix1 = start(ov) - start(x@.gr)[ov$subject.id] + x@.gr$ix.s[ov$subject.id]
                 s.ix2 = end(ov) - start(x@.gr)[ov$subject.id] + x@.gr$ix.s[ov$subject.id]
-                
+
                 q.ix = do.call('c', lapply(1:length(q.ix1), function(j) q.ix1[j]:q.ix2[j]))
                 s.ix = do.call('c', lapply(1:length(s.ix1), function(j) s.ix1[j]:s.ix2[j]))
-                
+
                 aux.ix = s.ix > x@.blocksize
-                
+
                 out[q.ix[!aux.ix]] = x@.ff[s.ix[!aux.ix]]
 
                 if (any(aux.ix))
                   {
                     aux.chunk = floor(s.ix[aux.ix] / x@.blocksize)
-                    
+
                     for (j in unique(aux.chunk))
                       {
                         tmp.ix = which(aux.chunk == j)
                         out[q.ix[aux.ix][tmp.ix]] = x@.ffaux[[j]][s.ix[aux.ix][tmp.ix]-j*x@.blocksize]
-                      }                      
+                      }
                   }
-               
+
                 if (!raw & !all(is.na(x@.levels)))
                   {
                     out = as.integer(out)
-                    out[out==0] = NA ## 0 = NA for types where NA is cast to 0 (e.g. ubyte) 
+                    out[out==0] = NA ## 0 = NA for types where NA is cast to 0 (e.g. ubyte)
                     out = x@.levels[out]
                   }
 
@@ -471,21 +478,21 @@ setMethod('[', 'ffTrack', function(x, i,
                     w = width(query)
                     q.id = unlist(lapply(1:length(query), function(x) rep(x, w[x])))
                     q.l = split(1:length(out), q.id)
-                    
+
                     for (j in q.l[ix])
                       out[j] = rev(out[j])
                   }
-                
+
                 if (gr)
                   {
                     tmp.out = gr.dice(i[, c()])
                     tmp.out$score = out
                     tmp.out = tmp.out[!is.na(tmp.out$score)]
-                    out = tmp.out                
+                    out = tmp.out
                   }
               }
 
-                                          
+
             if (inherits(i, 'GRangesList'))
               {
                 out = split(out, rep(query$grl.ix, width(query)))
@@ -494,13 +501,11 @@ setMethod('[', 'ffTrack', function(x, i,
             return(out)
           })
 
-
-
 #' @name writeable
 #' @title writeable
-#' 
+#' @description
 #' access writeable status of ffTrack object
-#' 
+#'
 #' @export
 #' @author Marcin Imielinski
 setGeneric('writeable', function(.Object) standardGeneric('writeable'))
@@ -508,46 +513,47 @@ setMethod('writeable', 'ffTrack', function(.Object) file.access(.Object@.ff.file
 
 #' @name mv
 #' @title  mv
-#' 
+#' @description
 #' moves location of .Object to new filepath, returns new updated object
-#' 
+#'
 #' @export
 #' @author Marcin Imielinski
-setGeneric('mv', function(.Object, path, overwrite = F, keep.original = F) standardGeneric('mv'))
-setMethod('mv', 'ffTrack', function(.Object, path, overwrite = F, keep.original = F)
+setGeneric('mv', function(.Object, path, overwrite = FALSE, keep.original = FALSE) standardGeneric('mv'))
+setMethod('mv', 'ffTrack', function(.Object, path, overwrite = FALSE, keep.original = FALSE)
     {
 
         #.Object = readRDS(.Object@.rds.filename)
 
-        new.root.path = file.dir(path)
+        new.root.path = path
+        path <- gsub('(^|(.*\\/))?([^\\/]*)$', '\\2', path)
+        .file.name <- function(paths) return(gsub('(^|(.*\\/))?([^\\/]*)', '\\3', paths)) ## put here so don't rely on skitools
         if (!file.exists(.Object@.ff.filename))
-            if (all(file.exists(paste(new.root.path, file.name(sapply(c(list(.Object@.ff), .Object@.ffaux), filename)), sep = '/'))))
+            if (all(file.exists(paste(new.root.path, .file.name(sapply(c(list(.Object@.ff), .Object@.ffaux), filename)), sep = '/'))))
                 {
                     warning('not finding source .ff filenames, but finding .ffdata files that the ffTrack in this object used to point to.  Will try re
 building, by linking the GRanges and vmode info in this object with these .ff files')
                     #                     newobj = ffTrack(.Object@.gr, vmode = .Object@.
                 }
-                    
-            
+
+
             if (!grepl('\\/', path))
               path = paste('./', path, sep = '')
-              
+
             if (file.exists(path))
               {
                 if (file.info(path)$isdir)
-                  path = paste(path, file.name(Object@.rds.filename), sep = '/')
+                  path = paste(path, .file.name(.Object@.rds.filename), sep = '/')
               }
             else if (grepl("\\/$", path))
-              stop('directory does not exist, please create before moving / copying')              
+              stop('directory does not exist, please create before moving / copying')
 
             if (!grepl('\\.rds$', path))
               path = paste(path, '.rds', sep = '')
 
-            browser()
             ff.path = gsub('\\.rds', '\\.ffdata', path)
 
             if ((file.exists(ff.path) | file.exists(path)) & !overwrite)
-              stop('One or more of the target paths exist, rerun with overwrite = F to overwrite')
+              stop('One or more of the target paths exist, rerun with overwrite = FALSE to overwrite')
 
             ff.aux.path = c()
             if (length(.Object@.ffaux))
@@ -555,35 +561,34 @@ building, by linking the GRanges and vmode info in this object with these .ff fi
                 {
                   ff.aux.path[i] = paste(ff.path, '.', i, sep = '')
                   if (file.exists(ff.aux.path[i]) & !overwrite)
-                    stop('One or more of the target paths exist, rerun with overwrite = F to overwrite')                    
+                    stop('One or more of the target paths exist, rerun with overwrite = FALSE to overwrite')
                 }
-            
+
             fstring = 'cp %s %s'
-                                                
-            newobj = .Object            
+
+            newobj = .Object
             newobj@.rds.filename = path
             newobj@.ff.filename = ff.path
-            filename(newobj@.ff) = newobj@.ff.filename
+            ff::filename(newobj@.ff) = newobj@.ff.filename
 
             if (keep.original)
               system(sprintf(fstring, ff.path, .Object@.ff.filename))  ## reverse copy since ff already "moves" for us
-            
+
             if (length(.Object@.ffaux)>0)
               for (i in 1:length(.Object@.ffaux))
                 {
-                  filename(newobj@.ffaux[[i]]) = ff.aux.path[i]
+                ff::filename(newobj@.ffaux[[i]]) = ff.aux.path[i]
                   if (keep.original)
-                    system(sprintf(fstring, ff.aux.path[i], filename(.Object@.ffaux[[i]]))) ## reverse copy since ff already "moves" for us
+                    system(sprintf(fstring, ff.aux.path[i], ff::filename(.Object@.ffaux[[i]]))) ## reverse copy since ff already "moves" for us
                 }
-            
+
             saveRDS(newobj, path)
             validObject(newobj)
-            
+
             return(newobj)
-          })      
+          })
 
 
-#########
 #' @name [<-
 #' @title [<-
 #'
@@ -594,11 +599,11 @@ building, by linking the GRanges and vmode info in this object with these .ff fi
 #' (1) if vector, then each value[j] corresponds is assigned to (entire) range i[j]
 #' (if if list of vectors, then length(value[[j]]) must be equal to length(i[j])
 #'
-#' vmode of values must be also compatible or coercible to vmode(x) 
+#' vmode of values must be also compatible or coercible to vmode(x)
 #'
 #' Will throw a warning if ranges in "i" are out of the "universe" of the ffTrack object.
 #'
-#' If raw = T and fft has .levels, then will populate entries directly (without factorizing) 
+#' If raw = T and fft has .levels, then will populate entries directly (without factorizing)
 #'
 #' if vmode is numeric op can equal "+", "-", "*", "/" .. and results in an update of the current entries in the
 #' ffTrack with op and value eg
@@ -611,11 +616,10 @@ building, by linking the GRanges and vmode info in this object with these .ff fi
 #' @param op operation can be either "+", "-", "*", "/", and only for numeric ffTrack
 #' @param raw output raw integer data for factor as opposed to character
 #' @param full logical flag whether the replacement value is a single vector whose sum is the summed width of the ranges "i"
-#' 
+#'
 #' @export
 #' @author Marcin Imielinski
-#########
-setMethod('[<-', 'ffTrack', function(x, i, value, op = NULL, raw = T, full = FALSE)
+setMethod('[<-', 'ffTrack', function(x, i, value, op = NULL, raw = TRUE, full = FALSE)
           {
             query = i;
 
@@ -624,17 +628,17 @@ setMethod('[<-', 'ffTrack', function(x, i, value, op = NULL, raw = T, full = FAL
                     ALLOWABLE.OPS = c('+', '-', '*', '/')
                     if (!(op %in% ALLOWABLE.OPS))
                         stop(sprintf('op must be one of the following: %s', paste(ALLOWABLE.OPS, collapse = ',')))
-                        
+
                     if (vmode(x) %in% c('character') | !is.na(levels(x)))
                         stop('op can only be specified for numeric ffTrack, this track is either character or factor track')
                 }
-                    
+
             if (!writeable(x))
               stop('object is read only, please make writeable, by setting writeable to TRUE')
 
             if (!is(query, 'GRanges'))
               stop('ffTrack index must be a GRanges')
-                                    
+
             if (full)
                 {
                     if (length(value) != sum(width(i)))
@@ -652,7 +656,7 @@ setMethod('[<-', 'ffTrack', function(x, i, value, op = NULL, raw = T, full = FAL
                 }
 
             ov = gr.findoverlaps(query, x@.gr)
-            
+
             if (any(ix <- (start(ov) != start(query)[ov$query.id] | end(ov) != end(query)[ov$query.id])))
               warning(sprintf('Parts of %s ranges ignored', sum(ix)))
 
@@ -663,15 +667,15 @@ setMethod('[<-', 'ffTrack', function(x, i, value, op = NULL, raw = T, full = FAL
 
 
             if (length(ov)>0)
-              {                
-#                ov.ix.s = c(1, 1 + cumsum(width(ov))[-length(ov)])                
+              {
+#                ov.ix.s = c(1, 1 + cumsum(width(ov))[-length(ov)])
 #                q.ix1 = start(ov) - start(query)[ov$query.id] + ov.ix.s
 #                q.ix2 = end[B(ov) - start(query)[ov$query.id] + ov.ix.s
 
                 q.ix.s = c(1, 1 + cumsum(width(query))[-length(query)])
                 q.ix1 = start(ov) - start(query)[ov$query.id] + q.ix.s[ov$query.id]
                 q.ix2 = end(ov) - start(query)[ov$query.id] + q.ix.s[ov$query.id]
-                
+
                 s.ix1 = start(ov) - start(x@.gr)[ov$subject.id] + x@.gr$ix.s[ov$subject.id]
                 s.ix2 = end(ov) - start(x@.gr)[ov$subject.id] + x@.gr$ix.s[ov$subject.id]
 
@@ -679,7 +683,7 @@ setMethod('[<-', 'ffTrack', function(x, i, value, op = NULL, raw = T, full = FAL
                 s.ix = do.call('c', lapply(1:length(s.ix1), function(j) s.ix1[j]:s.ix2[j]))
 
                 aux.ix = s.ix > x@.blocksize
-                                
+
                 ## reverse values for negative strand queries
                 if (any(ix <- as.logical(strand(query)=='-')))
                   {
@@ -689,8 +693,8 @@ setMethod('[<-', 'ffTrack', function(x, i, value, op = NULL, raw = T, full = FAL
                     for (j in q.l[ix])
                       values[j] = rev(values[j])
                   }
-                
-                if (!(all(is.na(x@.levels))) & !raw) ## populate as factor if levels exist and raw = F
+
+                if (!(all(is.na(x@.levels))) & !raw) ## populate as factor if levels exist and raw = FALSE
                   x@.ff[s.ix[!aux.ix]] = factor(values[q.ix[!aux.ix]], x@.levels)
                 else
                     {
@@ -708,17 +712,17 @@ setMethod('[<-', 'ffTrack', function(x, i, value, op = NULL, raw = T, full = FAL
                                     x@.ff[s.ix[!aux.ix]] = x@.ff[s.ix[!aux.ix]] / values[q.ix[!aux.ix]]
                             }
                     }
-                
+
                 if (any(aux.ix))
                   {
                     aux.chunk = floor(s.ix[aux.ix] / x@.blocksize)
-                    
+
                     for (j in unique(aux.chunk))
                       {
                         tmp.ix = which(aux.chunk == j)
-                        
+
                         if (!all(is.na(x@.levels)) & !raw) ## populate as factor if levels exist
-                          x@.ffaux[[j]][s.ix[aux.ix][tmp.ix] - j*s@.blocksize] =
+                          x@.ffaux[[j]][s.ix[aux.ix][tmp.ix] - j*x@.blocksize] =
                             factor(as.vector(values[q.ix[aux.ix][tmp.ix]]), x@.levels)
                         else
                             {
@@ -741,9 +745,9 @@ setMethod('[<-', 'ffTrack', function(x, i, value, op = NULL, raw = T, full = FAL
                                                 x@.ffaux[[j]][s.ix[aux.ix][tmp.ix] - j*x@.blocksize]  /  as.vector(values[q.ix[aux.ix][tmp.ix]])
                                     }
                             }
-                      }                      
+                      }
                   }
-              }            
+              }
 
             return(x)
           })
@@ -754,59 +758,61 @@ setMethod('[<-', 'ffTrack', function(x, i, value, op = NULL, raw = T, full = FAL
 #' @title ffTrack
 #' @description
 #'
-#' Constructs new ffTrack for off-line storage of genomic data.  Allocates memory to store one of several data "movdes"
-#' (eg numeric, byte, character) data types across a fixed interval set "gr".  Useful for numeric (eg conservation track)
-#' or character (eg human genome sequence) data.  Physically instantiation will result in the creation of one or more
+#' Constructs new \code{ffTrack} for off-line storage of genomic data.  Allocates memory to store one of several data "modes"
+#' (e.g. \code{numeric}, \code{byte}, \code{character}) data types across a fixed interval set (\code{GRanges}).
+#' Useful for numeric (e.g. conservation track)
+#' or character (e.g. human genome sequence) data. Physical instantiation will result in the creation of one or more
 #' "heavy" .ffData files and a lightweight .rds pointer which is the ffTrack object that is returned by this function.  That
-#' object can be read or written to using GRanges indices. 
-#' 
+#' object can be read or written to using GRanges indices.
+#'
 #' Initialization requires (1) a filename (2) a set of GRanges corresponding to the "space"
 #' (3) a vmode (one of the following:
-#' boolean (1 bit logical)
-#' logical (2 bit logical + NA)
-#' quad (2 bit unsigned integer without NA)
-#' nibble (4 bit unsigned integer without NA)
-#' byte (8 bit signed integer with NA)
-#' ubyte (8 bit unsigned integer without NA)
-#' short (16 bit signed integer with NA)
-#' ushort (16 bit unsigned integer without NA)
-#' integer (32 bit signed integer with NA)
-#' single (32 bit float)
-#' double (64 bit float)
-#' complex (2 x 64 bit float),
-#' raw (8 bit unsigned char)
-#' character (character)
-#'
+#' \itemize{
+#' \item boolean (1 bit logical)
+#' \item logical (2 bit logical + NA)
+#' \item quad (2 bit unsigned integer without NA)
+#' \item nibble (4 bit unsigned integer without NA)
+#' \item byte (8 bit signed integer with NA)
+#' \item ubyte (8 bit unsigned integer without NA)
+#' \item short (16 bit signed integer with NA)
+#' \item ushort (16 bit unsigned integer without NA)
+#' \item integer (32 bit signed integer with NA)
+#' \item single (32 bit float)
+#' \item double (64 bit float)
+#' \item complex (2 x 64 bit float),
+#' \item raw (8 bit unsigned char)
+#' \item character (character)
+#' }
 #' Initialization will create two files (1) an .rds object meta data (2) .ffdata binary ff object
-#' These files should have static paths (i.e. should not be moved outside of R) - otherwise will break. 
+#' These files should have static paths (i.e. should not be moved outside of R) - otherwise will break.
 #' However the object will still be functional if the .rds file is moved to another location and loaded
 #' from there.
 #'
 #' optional argument "levels" will (by default) convert stored values to levels prior to accessing, and populated
 #' values to integers prior to storing.  In the file, levels will be indexed with 0-based indices (i.e. 0 will refer to the
 #' the first level item)
-#' 
-#' @param gr GRanges of input ranges 
-#' @param filename filename to store the genomic data
-#' @param overwrite whether to overwrite existing in the filena,me
-#' @param levels optional argument to specify unique levels for storage of factors, 
-#' @param default.val
-#' @param verbose
-#' @param vmode
+#'
+#' @param gr \code{GRanges} of input ranges
+#' @param file.name Filename to store the genomic data
+#' @param overwrite Whether to overwrite existing in the filename
+#' @param levels Optional argument to specify unique levels for storage of factors,
+#' @param default.val default val
+#' @param verbose Set verbosity
+#' @param vmode vmode
 #' @return ffTrack object
 #' @export
 #' @author Marcin Imielinski
-ffTrack = function(gr, filename, default.val = NA, overwrite = FALSE, levels = NULL, verbose = FALSE, vmode = 'double',...)
-    new('ffTrack', gr = gr, filename = filename, default.val = default.val, overwrite = overwrite, levels = levels, verbose = verbose, vmode = vmode, ...)
+ffTrack = function(gr, file.name, default.val = NA, overwrite = FALSE, levels = NULL, verbose = FALSE, vmode = 'double',...)
+    new('ffTrack', gr = gr, file.name = file.name, default.val = default.val, overwrite = overwrite, levels = levels, verbose = verbose, vmode = vmode, ...)
 
 
 #' @name bw2fft
 #' @title bw2fft
 #'
 #' @description
-#' 
+#'
 #' Creates ffTrack object from input bigwig file.
-#' 
+#'
 #' @import rtracklayer
 #' @param bwpath path to BigWig
 #' @param fftpath path to ffTrack .rds that will be created by this (by default .bw is replaced by .rds)
@@ -817,57 +823,55 @@ ffTrack = function(gr, filename, default.val = NA, overwrite = FALSE, levels = N
 #' @param skip.sweep logical flag (default FALSE) if TRUE will skip the sweep of "region" for the portions that have non-NA values
 #' @param vmode  character specifyhing vmode to use for encoding (by default double)
 #' @param resume logical flag specifying whether to resume the populatino of an already existing ffTrack object (default FALSE)
-#' @param min.gapwidth  minimum gap-width with which to merge reference adjacent intervals, this will mildly increase the file size but reduce the range complexity of the GRanges object 
+#' @param min.gapwidth  minimum gap-width with which to merge reference adjacent intervals, this will mildly increase the file size but reduce the range complexity of the GRanges object
 #' @return ffTrack object corresponding to the data in the BigWig file
 #' @export
 #' @author Marcin Imielinski
 bw2fft = function(bwpath,
   fftpath = gsub('(\\.bw.*)|(\\.bigwig.*)', '.rds', bwpath),
   region = NULL, # whether to limit to certain region (instead of whole genome)
-  chrsub = T, ## whether to sub in / sub out 'chr' when accessing bigwig file
+  chrsub = TRUE, ## whether to sub in / sub out 'chr' when accessing bigwig file
 #  mc.cores = 1, ## currently mc.cores can only be one (weird mclapply bug when running)
-  verbose = F, 
+  verbose = FALSE,
   buffer = 1e5, # number of bases to access at a time
-  skip.sweep = F, # if TRUE will not sweep for covered region, just make a whole genome file or a file across provided regions
+  skip.sweep = FALSE, # if TRUE will not sweep for covered region, just make a whole genome file or a file across provided regions
   vmode = 'double',
-  resume = F,  ## in case something went wrong can update an existing file
+  resume = FALSE,  ## in case something went wrong can update an existing file
   min.gapwidth = 1e3 ## flank (to reduce the range complexity of the ffdata skeleton, but increase file size)
   )
   {
-    require('rtracklayer')
-    require('parallel')
     mc.cores = 1;
-    
+
     if (!is.null(region))
       if (chrsub)
-        region = gr.fix(gr.chr(region), seqinfo(BigWigFile(normalizePath(bwpath))), drop = T)
-            
+        region = gr.fix(gr.chr(region), seqinfo(BigWigFile(normalizePath(bwpath))), drop = TRUE)
+
     if (!skip.sweep)
-      {    
+      {
         if (!is.null(region))
-          tiles = gr.tile(region, buffer)        
-        else                
-          tiles = gr.tile(seqinfo2gr(seqinfo(BigWigFile(normalizePath(bwpath)))), buffer)
+          tiles = gr.tile(region, buffer)
+        else
+          tiles = gr.tile(si2gr(seqinfo(BigWigFile(normalizePath(bwpath)))), buffer)
 
         if (verbose)
           cat(sprintf('\nInput path %s, Output path %s, Buffer %s, min.gapwidth %s', bwpath, fftpath, buffer, min.gapwidth))
-        
+
         if (verbose)
           cat(sprintf('\nSweeping BigWig file for covered positions across %s tiles covering %s bases with buffer size %s \n', length(tiles), sum(as.numeric(width(tiles))), buffer))
-        
+
         ## first sweep file to find all "covered" ranges (in order to make skeleton ffTrack object)
-        covered = reduce(do.call('c', mclapply(1:length(tiles), function(x)
+        covered = reduce(do.call('c', parallel::mclapply(1:length(tiles), function(x)
           {
             if (verbose)
               cat(x, ' ')
-            reduce(import.ucsc(bwpath, selection = tiles[x], chrsub = F), min.gapwidth = min.gapwidth)
+            reduce(import.ucsc(bwpath, selection = tiles[x], chrsub = FALSE), min.gapwidth = min.gapwidth)
           }, mc.cores = mc.cores)), min.gapwidth = min.gapwidth)
       }
     else if (!is.null(region))
       covered = region
     else ## assume entire seqinfo is covered
-      covered = seqinfo2gr(seqinfo(BigWigFile(normalizePath(bwpath))))
-    
+      covered = si2gr(seqinfo(BigWigFile(normalizePath(bwpath))))
+
     if (chrsub)
       covered = gr.sub(covered, 'chr', '')
 
@@ -878,13 +882,13 @@ bw2fft = function(bwpath,
 
     if (verbose)
       cat(sprintf('\t.ffdata file %s has size %sM\n', filename(fft)['ff'], round(file.info(filename(fft)['ff'])$size/1e6, 2)))
-    
+
     covered.tile = gr.tile(covered, buffer)
-    
+
     if (verbose)
       cat(sprintf('\nPopulating ffTrack at %s tiles covering %s bases with buffer size %s \n', length(covered.tile), sum(as.numeric(width(covered.tile))), buffer))
-    
-    mclapply(1:length(covered.tile), function(x)
+
+    parallel::mclapply(1:length(covered.tile), function(x)
              {
                if (verbose)
                  cat(x, ' ')
@@ -893,17 +897,17 @@ bw2fft = function(bwpath,
                gc()
              }, mc.cores = mc.cores)
 
-    
+
     if (verbose)
       cat('\n')
-    
-    return(fft)    
+
+    return(fft)
   }
 
 
 #' Creates ffTrack object from input .wig file
 #'
-#' 
+#'
 #' @import rtracklayer
 #' @param bwpath path to Wig
 #' @param fftpath path to ffTrack .rds that will be created by this (by default .bw is replaced by .rds)
@@ -914,23 +918,23 @@ bw2fft = function(bwpath,
 #' @param skip.sweep logical flag (default FALSE) if TRUE will skip the sweep of "region" for the portions that have non-NA values
 #' @param vmode  character specifyhing vmode to use for encoding (by default double)
 #' @param resume logical flag specifying whether to resume the populatino of an already existing ffTrack object (default FALSE)
-#' @param min.gapwidth  minimum gap-width with which to merge reference adjacent intervals, this will mildly increase the file size but reduce the range complexity of the GRanges object 
+#' @param min.gapwidth  minimum gap-width with which to merge reference adjacent intervals, this will mildly increase the file size but reduce the range complexity of the GRanges object
 #' @return ffTrack object corresponding to the data in the Wig file
 #' @export
 wig2fft = function(wigpath,
-  fftpath = gsub('(\\.wig.*)', '.rds', bwpath),
-  chrsub = T, ## whether to sub in / sub out 'chr' when accessing wig file
+  fftpath = gsub('(\\.wig.*)', '.rds', wigpath),
+  chrsub = TRUE, ## whether to sub in / sub out 'chr' when accessing wig file
 #  mc.cores = 1, ## currently mc.cores can only be one (weird mclapply bug when running)
-  verbose = F, 
+  verbose = F,
   buffer = 1e5, # number of bases to access at a time
-  skip.sweep = F, # if TRUE will not sweep for covered region, just make a whole genome file or a file across provided regions
+  skip.sweep = FALSE, # if TRUE will not sweep for covered region, just make a whole genome file or a file across provided regions
   seqlengths = hg_seqlengths(),
   vmode = 'double',
   gz = grepl('\\.gz$', wigpath),
-  bz2 = grepl('\\.bz2$', wigpath),  
+  bz2 = grepl('\\.bz2$', wigpath),
   min.gapwidth = 1e3 ## flank (to reduce the range complexity of the ffdata skeleton, but increase file size)
   )
-  {    
+  {
     if (gz)
       {
         grepstr = sprintf('gunzip -c %s | grep -nP "\\S+Step" ', wigpath)
@@ -947,7 +951,7 @@ wig2fft = function(wigpath,
         wcstr = sprintf('wc -l %s', wigpath)
       }
 
-    
+
     p = pipe(grepstr); steps = readLines(p); close(p)
     p = pipe(wcstr); nlines = as.numeric(strsplit(readLines(p), ' ')[[1]][1]); close(p)
 
@@ -966,7 +970,7 @@ wig2fft = function(wigpath,
     ## obtain ranges and step sizes for data
     if (verbose)
       cat(sprintf('Parsing %s step wig file %s with %s lines and %s ranges\n', type, wigpath, nlines, length(steps)))
-    
+
     if (type == 'fixed')
       {
         tmp = strsplit(steps[1], '(\\:)|( )')[[1]]
@@ -979,43 +983,43 @@ wig2fft = function(wigpath,
 
         if (ncol == 4)
           {
-            tmp = tryCatch(matrix(unlist(strsplit(steps, '(\\:)|( )')), ncol = 4, byrow = T, dimnames = list(c(), col.names)), error = function(x) NULL)
-            
+            tmp = tryCatch(matrix(unlist(strsplit(steps, '(\\:)|( )')), ncol = 4, byrow = TRUE, dimnames = list(c(), col.names)), error = function(x) NULL)
+
             if (is.null(steps))
               stop('FixedStep WIG file corrupt: make sure that every declaration line in file has same format with 4, 5, or 6 columns (+/- step, span) according to UCSC website')
-            
+
             tab = data.frame(chr = gsub('chrom\\=', '', tmp[, 'chrom']),
-              start = as.numeric(gsub('start\\=', '', tmp[, 'start'])),              
+              start = as.numeric(gsub('start\\=', '', tmp[, 'start'])),
               line = as.numeric(gsub('line\\=', '', tmp[, 'line'])),
-              step = 1, 
-              span = 1, stringsAsFactors = F)            
-          }        
+              step = 1,
+              span = 1, stringsAsFactors = FALSE)
+          }
         else if (ncol == 5)
           {
-            tmp = tryCatch(matrix(unlist(strsplit(steps, '(\\:)|( )')), ncol = 5, byrow = T, dimnames = list(c(), col.names)), error = function(x) NULL)
-            
+            tmp = tryCatch(matrix(unlist(strsplit(steps, '(\\:)|( )')), ncol = 5, byrow = TRUE, dimnames = list(c(), col.names)), error = function(x) NULL)
+
             if (is.null(steps))
               stop('FixedStep WIG file corrupt: make sure that every declaration line has same format with 5 or 6 columns (+/- span) according to UCSC website')
-            
+
             tab = data.frame(chr = gsub('chrom\\=', '', tmp[, 'chrom']),
-              start = as.numeric(gsub('start\\=', '', tmp[, 'start'])),              
+              start = as.numeric(gsub('start\\=', '', tmp[, 'start'])),
               line = as.numeric(gsub('line\\=', '', tmp[, 'line'])),
               step = as.numeric(gsub('step\\=', '', tmp[, 'step'])),
-              span = 1, stringsAsFactors = F)            
-          }        
+              span = 1, stringsAsFactors = FALSE)
+          }
         else if (ncol == 6)
           {
-            tmp = tryCatch(matrix(unlist(strsplit(steps, '(\\:)|( )')), ncol = 5, byrow = T, dimnames = list(c(), col.names)), error = function(x) NULL)
+            tmp = tryCatch(matrix(unlist(strsplit(steps, '(\\:)|( )')), ncol = 5, byrow = TRUE, dimnames = list(c(), col.names)), error = function(x) NULL)
 
             if (is.null(tmp))
               stop('FixedStep WIG file corrupt: make sure that every declaration line has same format with 5 or 6 columns (+/- span) according to UCSC website')
 
             tab = data.frame(chr = gsub('chrom\\=', '', tmp[, 'chrom']),
-             start = as.numeric(gsub('start\\=', '', tmp[, 'start'])),              
+             start = as.numeric(gsub('start\\=', '', tmp[, 'start'])),
              line = as.numeric(gsub('line\\=', '', tmp[, 'line'])),
              step = as.numeric(gsub('step\\=', '', tmp[, 'step'])),
              span = as.numeric(gsub('span\\=', '', tmp[, 'span'])),
-             stringsAsFactors = F)            
+             stringsAsFactors = FALSE)
           }
         else
           stop('WIG file corrupt')
@@ -1023,19 +1027,19 @@ wig2fft = function(wigpath,
         tab$width = (diff(c(tab$line, nlines+1))-1) * tab$step ## step tells us what is the (maximum) footprint of each sub-interval corresponding to a line
         tab$end = tab$start + tab$width -1
         tab$line.start = tab$line+1  ## beginning and ends of line
-        tab$line.end = tab$line.start + tab$width -1 
+        tab$line.end = tab$line.start + tab$width -1
 
         if (chrsub)
           tab$chrom = gsub('chr', '', tab$chr)
 
         if (verbose)
           cat(sprintf('Creating ffData with vmode %s for %s ranges spanning %s bases of sequence\n', vmode, nrow(tab), sum(tab$width)))
-                  
+
         fft = ffTrack(reduce(gr.fix(seg2gr(tab, seqlengths = NULL), seqlengths), min.gapwidth = min.gapwidth), fftpath, vmode = vmode)
-        
+
         if (verbose)
           cat(sprintf('\t.ffdata file %s has size %sM\n', filename(fft)['ff'], round(size(fft))))
-        
+
         # now populate fft
         con = file(wigpath, 'r')
         tmp = readLines(con, tab$line[1])
@@ -1053,7 +1057,7 @@ wig2fft = function(wigpath,
             cat('\nPopulating .. \n\nProgress bar:\n')
             cat(paste(rep('*', numpoints), collapse = ''), '\n')
           }
-        
+
         for (i in 1:nrow(tab))
           {
             tmp = readLines(con, w[i])
@@ -1063,7 +1067,7 @@ wig2fft = function(wigpath,
             if (st[i]>1)
               {
                 tmp2 = rep(NA, length(tmp)*st[i])
-                tmp.st = ((1:length(tmp))-1)*st[i] + 1 
+                tmp.st = ((1:length(tmp))-1)*st[i] + 1
                 tmp.ix = unlist(mapply(function(s, e) s:e, tmp.st, tmp.st + sp[i] - 1))
                 tmp2[tmp.ix] = tmp
                 tmp = tmp2
@@ -1073,7 +1077,7 @@ wig2fft = function(wigpath,
 
             scores = c(scores, list(tmp))
             curbuf = curbuf + length(tmp)
-            
+
             if (curbuf > buffer)
               {
                 if (verbose)
@@ -1100,20 +1104,163 @@ wig2fft = function(wigpath,
               cat('*')
             cat('\n')
           }
-        
+
         close(con)
 
         return(fft)
-      }        
+      }
   }
 
-#' Creates ffTrack object from BSGenome or FASTA (coming soon) file 
+#' Retrieve genomic sequenes
+#'
+#' Wrapper around getSeq which does the "chr" and seqnames conversion if necessary
+#' also handles GRangesList queries
+#'
+#' @param hg A BSgenome or and ffTrack object with levels = c('A','TRUE','G','C','N')
+#' @param gr GRanges object to define the ranges
+#' @param unlist logical whether to unlist the final output into a single DNAStringSet. Default TRUE
+#' @param mc.cores Optional multicore call. Default 1
+#' @param mc.chunks Optional define how to chunk the multicore call. Default mc.cores
+#' @param verbose Increase verbosity
+#' @return DNAStringSet of sequences
+#' @export
+get_seq = function(hg, gr, unlist = TRUE, mc.cores = 1, mc.chunks = mc.cores,
+                   as.data.table = FALSE, verbose = FALSE)
+{
+  if (inherits(gr, 'GRangesList'))
+  {
+    grl = gr;
+    old.names = names(grl);
+    gr = unlist(grl);
+    names(gr) = unlist(lapply(1:length(grl), function(x) rep(x, length(grl[[x]]))))
+    seq = get_seq(hg, gr, mc.cores = mc.cores, mc.chunks = mc.chunks, verbose = verbose)
+    cl = class(seq)
+    out = split(seq, names(gr))
+    out = out[order(as.numeric(names(out)))]
+    if (unlist)
+      out = do.call('c', lapply(out, function(x) do.call(cl, list(unlist(x)))))
+    names(out) = names(grl)
+    return(out)
+  }
+  else
+  {
+    if (is(hg, 'ffTrack'))
+    {
+      if (!all(sort(levels(hg)) == sort(c('A', 'T', 'G', 'C', 'N'))))
+        cat("ffTrack not in correct format for get_seq, levels must contain only: 'A', 'T', 'G', 'C', 'N'\n")
+    }
+    else ## only sub in 'chr' if hg is a BSGenome
+      if (!all(grepl('chr', as.character(seqnames(gr)))))
+        gr = gr.chr(gr)
+
+      gr = gr.fix(gr, hg)
+      if (mc.cores>1)
+      {
+        ix = suppressWarnings(split(1:length(gr), 1:mc.chunks))
+
+        if (is(hg, 'ffTrack'))
+        {
+          mcout <- parallel::mclapply(ix, function(x)
+          {
+            tmp = hg[gr[x]]
+
+            if (any(is.na(tmp)))
+              stop("ffTrack corrupt: has NA values, can't convert to DNAString")
+
+            if (!as.data.table) {
+              bst = Biostrings::DNAStringSet(sapply(split(tmp, as.vector(Rle(1:length(x), width(gr)[x]))), function(y) paste(y, collapse = '')))
+              names(bst) = names(gr)[x]
+            } else {
+              bst <- data.table(seq=sapply(split(tmp, as.vector(Rle(1:length(x), width(gr)[x]))), function(y) paste(y, collapse='')))
+              bst[, names:=names(gr)[x]]
+            }
+
+            if (any(strand(gr)[x]=='-'))
+            {
+              ix.tmp = as.logical(strand(gr)[x]=='-')
+              if (!as.data.table)
+                bst[ix.tmp] = Biostrings::complement(bst[ix.tmp])
+              else
+                bst$seq[ix.tmp] <- as.character(Biostrings::complement(DNAStringSet(bst$seq[ix.tmp])))
+            }
+
+            if (verbose)
+              cat('.')
+
+            return(bst)
+          }
+          , mc.cores = mc.cores)
+
+          if (!as.data.table)
+          {
+            if (length(mcout)>1)
+              tmp = c(mcout[[1]], mcout[[2]])
+            out <- do.call('c', mcout)[order(unlist(ix))]
+          }
+          else
+            out <- rbindlist(mcout)
+        }
+        else
+        {
+          out = do.call('c', parallel::mclapply(ix, function(x)
+          {
+            if (verbose)
+              cat('.')
+            return(getSeq(hg, gr[x]))
+          }
+          ,mc.cores = mc.cores))[order(unlist(ix))]
+          if (verbose)
+            cat('\n')
+        }
+      }
+      else
+      {
+        if (is(hg, 'ffTrack'))
+        {
+          tmp = hg[gr]
+
+          tmp[is.na(tmp)] = 'N'
+
+          if (any(is.na(tmp)))
+            stop("ffTrack corrupt: has NA values, can't convert to DNAString")
+
+          if (as.data.table) {
+            bst <- data.table(seq=sapply(split(tmp, as.vector(Rle(1:length(gr), width(gr)))), function(x) paste(x, collapse='')))
+            bst[, names:=names(gr)]
+          } else {
+            bst = DNAStringSet(sapply(split(tmp, as.numeric(Rle(1:length(gr), width(gr)))), function(x) paste(x, collapse = '')))
+            names(bst) = names(gr)
+          }
+
+          if (any(as.character(strand(gr))=='-'))
+          {
+            ix = as.logical(strand(gr)=='-')
+            if (!as.data.table) {
+              bstc <- as.character(bst)
+              bstc[ix] <- as.character(Biostrings::complement(bst[ix]))
+              bst <- Biostrings::DNAStringSet(bstc)  ## BIZARRE bug with line below
+              #bst[ix] = Biostrings::complement(bst[ix])
+            } else {
+              bst$seq[ix] <- as.character(Biostrings::complement(DNAStringSet(bst$seq[ix])))
+            }
+          }
+
+          return(bst)
+        }
+        else
+          out = getSeq(hg, gr)
+      }
+      return(out)
+  }
+}
+
+#' Creates ffTrack object from BSGenome or FASTA (coming soon) file
 #'
 #' ## will either convert (1) raw sequence (2) k-nucleotide context centered around base or (3) motifs defined by some dictionary (anchored at first base) into leveled ffTrack (i.e. integer track with populated levels field)
 #'
 #' @import rtracklayer
-#' @param seq BSGenome object, ffTrack object representing genomic sequence, or (not yet supported) FASTA file 
-#' 
+#' @param seq BSGenome object, ffTrack object representing genomic sequence, or (not yet supported) FASTA file
+#'
 #' @param nnuc how many nucleotides to left and right to enumerate
 #' @param dict this should be a character vector or DNAStringSet, overrides nnuc arg if not null
 #' @param chrsub whether to sub in / sub out 'chr' when accessing seq file
@@ -1127,81 +1274,80 @@ wig2fft = function(wigpath,
 #' @param skip.sweep logical flag (default FALSE) if TRUE will skip the sweep of "region" for the portions that have non-NA values
 #' @param vmode  character specifyhing vmode to use for encoding (by default double)
 #' @param resume logical flag specifying whether to resume the populatino of an already existing ffTrack object (default FALSE)
-#' @param min.gapwidth  minimum gap-width with which to merge reference adjacent intervals, this will mildly increase the file size but reduce the range complexity of the GRanges object 
+#' @param min.gapwidth  minimum gap-width with which to merge reference adjacent intervals, this will mildly increase the file size but reduce the range complexity of the GRanges object
 #' @return ffTrack object corresponding to the data in the BigWig file
 #' @export
 #'
-seq2fft = function(seq, ## BSGenome object, ffTrack object representing genomic sequence, or (not yet supported) FASTA file 
+seq2fft = function(seq, ## BSGenome object, ffTrack object representing genomic sequence, or (not yet supported) FASTA file
   fftpath,
   nnuc = 0, ## how many nucleotides to left and right to enumerate
   dict = NULL, ## this should be a character vector or DNAStringSet, overrides nnuc arg if not null
-  chrsub = T, ## whether to sub in / sub out 'chr' when accessing seq file
-  neg = F, ## whether to analyze sequence data on negative strand (i.e. motifs will be analyzed in rev complement)
-  region = NULL, # GRanges specifying region to limit to (instead of whole genome inferred from seq), strand is taken into account here! 
+  chrsub = TRUE, ## whether to sub in / sub out 'chr' when accessing seq file
+  neg = FALSE, ## whether to analyze sequence data on negative strand (i.e. motifs will be analyzed in rev complement)
+  region = NULL, # GRanges specifying region to limit to (instead of whole genome inferred from seq), strand is taken into account here!
   mc.cores = 1, ## currently mc.cores can only be one (weird mclapply bug when running)
-  verbose = F, 
+  verbose = FALSE,
   buffer = 1e5, # number of bases to access at a time
-  skip.sweep = F, # if TRUE will not sweep for covered region, just make a whole genome file or a file across provided regions
+  skip.sweep = FALSE, # if TRUE will not sweep for covered region, just make a whole genome file or a file across provided regions
   vmode = 'ubyte',
   min.gapwidth = 1e3 ## flank (to reduce the range complexity of the ffdata skeleton, but increase file size)
   )
 {
-    require(parallel)
     if (inherits(seq, 'BSgenome') | is(seq, 'ffTrack'))
     {
       if (is.null(region))
         {
-          region = seqinfo2gr(seq)
+          region = si2gr(seq)
           if (chrsub)
             region = gr.sub(region, 'chr', '')
 
           if (neg)
             strand(region) = '-'
         }
-           
+
       tiles = gr.tile(region, buffer)
 
-      context = F
+      context = FALSE
       if (is.null(dict))
         {
           DNA_BASES = c('A', 'G', 'C', 'T', 'N')
-          dict = DNAStringSet(mkAllStrings(DNA_BASES, nnuc*2 + 1))
-          context = T
+          dict = Biostrings::DNAStringSet(Biostrings::mkAllStrings(DNA_BASES, nnuc*2 + 1))
+          context = TRUE
         }
       else
         if (!is(dict, 'character'))
-          dict = DNAStringSet(dict)
+          dict = Biostrings::DNAStringSet(dict)
 
       if (is(fftpath, 'ffTrack'))
         {
           if (verbose)
-            cat(sprintf('Populating ffTrack with filename %s with %s MB of sequence\n', filename(fftpath)['rds'], round(sum(as.numeric(width(region)))/1e6, 2)))          
-          
+            cat(sprintf('Populating ffTrack with filename %s with %s MB of sequence\n', filename(fftpath)['rds'], round(sum(as.numeric(width(region)))/1e6, 2)))
+
           fft = fftpath ## append to existing fftpath
         }
       else
         {
           if (verbose)
             cat(sprintf('Making ffTrack for genome %s spanning %s MB of sequence\n', attributes(seq)$seqs_pkgname, round(sum(as.numeric(width(region)))/1e6, 2)))
-          
+
           fft = ffTrack(region, fftpath, levels = as.character(dict), vmode = vmode)
         }
-      
+
       if (verbose)
-        cat(sprintf('\t.ffdata file %s has size %sM\n', filename(fft)['ff'], round(size(fft))))     
+        cat(sprintf('\t.ffdata file %s has size %sM\n', filename(fft)['ff'], round(size(fft))))
 
       print(tiles)
-      
-      mclapply(1:length(tiles), function(x)
+
+      parallel::mclapply(1:length(tiles), function(x)
                {
                  if (verbose)
                    cat(x, '\n')
                  tmp.tile = tiles[x]
                  if (context) ## get flanking sequence if dict was null (i.e. we are looking for k-nucleotide context)
                    tmp.tile = suppressWarnings(tmp.tile + nnuc)
-                 
+
                  tmp = get_seq(seq, tmp.tile)[[1]];
-                 
+
                  ix = match.bs(tmp, dict)
 
                  if (context) ## get flanking sequence if dict was null (i.e. we are looking for k-nucleotide context)
@@ -1210,50 +1356,47 @@ seq2fft = function(seq, ## BSGenome object, ffTrack object representing genomic 
                      flank.right = end(tmp.tile) - end(tiles)[x]
 
                      ix = ix[1:(length(ix)-2*nnuc)]
-                     
+
                      ## pad left
                      if ((pad <- nnuc - flank.left)>0)
                        ix = c(rep(NA, pad), ix)
 
                      ## pad left
                      if ((pad <- nnuc - flank.right)>0)
-                       ix = c(ix, rep(NA, pad))                                          
+                       ix = c(ix, rep(NA, pad))
                    }
-                 
-                 fft[tiles[x], raw = T] = list(ix)
-                 
-                 
+
+                 fft[tiles[x], raw = TRUE] = list(ix)
+
+
                }, mc.cores = mc.cores)
-      
+
       return(fft)
     }
   else
-    stop('Only BSGenome and ffTrack input for seq currently supported')  
+    stop('Only BSGenome and ffTrack input for seq currently supported')
 }
 
-
-
-###########################################
-#' fftab
-#'
+#' @name fftab
+#' @title Tabulate data in an \code{ffTrack}
 #' @description
-#' 
+#'
 #' Tabulates data in ffTrack file across a set of interavls (GRanges)
 #' by counting the number of positions matching a given "signature" or
 #' applying FUN to aggregate data.  Returns the input GRanges populated with one or more meta data columns
-#' of counts or averages. 
+#' of counts or averages.
 #'
 #' Similar to gr.val in gUtils
-#' 
+#'
 #' ff can be an ffTrack but also an RleList from same genome as intervals.
 #'
 #' returns a GRanges with additional columns for metadata counts
 #'
 #' @param ff  ffTrack or RleList to pull data from
-#' @param intervals
+#' @param intervals intervals
 #' @param signatures Signatures is a named list that specify what is to be tallied.  Each signature (ie list element)
 #' consist of an arbitrary length character vector specifying strings to %in% (grep = FALSE)
-#' or length 1 character vector to grepl (if grep = TRUE) 
+#' or length 1 character vector to grepl (if grep = TRUE)
 #' or a length 1 or 2 numeric vector specifying exact value or interval to match (for numeric data)
 #'
 #' Every list element of signature will become a metadata column in the output GRanges
@@ -1263,15 +1406,16 @@ seq2fft = function(seq, ## BSGenome object, ffTrack object representing genomic 
 #' @param mc.cores how many cores (default 1)
 #' @param chunksize chunk of FF to bring into memory (i.e. the width of interval), decrease if memory becomes an issue
 #' @param verbose logical flag
-#' @param na.rm logical flag whether to remove na during aggregation. 
-###########################################
+#' @param na.rm logical flag whether to remove na during aggregation.
+#' @importFrom data.table rbindlist data.table setkey :=
+#' @importFrom gUtils gr.sub seg2gr gr.stripstrand si2gr rle.query gr.fix gr.chr gr.tile grl.unlist gr.findoverlaps gr.dice hg_seqlengths
+#' @export
 fftab = function(ff, intervals, signatures = NULL, FUN = sum, grep = FALSE, mc.cores = 1, chunksize = 1e6, verbose = TRUE, na.rm = TRUE)
     {
-        require(data.table)
-
+id = ix = NULL ## NOTE fix
         if (!is(ff, 'ffTrack') & !is(ff, 'RleList'))
             stop('Input ff should be ffTrack or RleList\n')
-        
+
         if (length(intervals)==0)
             stop('Must provide non empty interavl input as GRanges')
 
@@ -1279,10 +1423,10 @@ fftab = function(ff, intervals, signatures = NULL, FUN = sum, grep = FALSE, mc.c
             {
                 if (!is.list(signatures))
                     stop('Signatures must be a named list of arbitrary length character or length 1 or 2 numeric vectors')
-                
+
                 if (is.null(names(signatures)))
                     names(signatures) = paste('sig', 1:length(signatures), sep = '')
-                
+
                 check = sapply(signatures, function(x)
                     {
                         if (is.numeric(x))
@@ -1291,20 +1435,20 @@ fftab = function(ff, intervals, signatures = NULL, FUN = sum, grep = FALSE, mc.c
                             if (grep)
                                 return(length(x)==1)
                         return(TRUE)
-                    })            
-        
+                    })
+
                 if (!all(check))
-                    stop('signatures input is malformed, should be either length 1 or 2 numeric, length 1 character (if grep = TRUE), or atbitrary length character otherwise)')                    
+                    stop('signatures input is malformed, should be either length 1 or 2 numeric, length 1 character (if grep = TRUE), or atbitrary length character otherwise)')
 
             }
-        else 
+        else
             signatures = list(score = numeric()) ## we are just scoring bases
 
-        
+
         ## generate command that will be executed at each access
         cmd = paste('list(', paste(sapply(names(signatures), function(x)
-            {                
-                sig = signatures[[x]]                
+            {
+                sig = signatures[[x]]
                 if (is.numeric(sig))
                     {
                                 if (length(sig)==0)
@@ -1315,13 +1459,13 @@ fftab = function(ff, intervals, signatures = NULL, FUN = sum, grep = FALSE, mc.c
                                     cmd = sprintf('%s = FUN(dat > %s & dat< %s, na.rm = na.rm)', x, sig[1], sig[2])
                             }
                 else
-                    if (grep)                        
+                    if (grep)
                         cmd = sprintf('%s = FUN(grepl("%s", dat), na.rm = na.rm) ', x, sig[1])
                     else
                         cmd = paste(x, '= FUN(dat %in%',
                             paste('c(', paste("\"", sig, "\"", sep = '', collapse = ','), '), na.rm = na.rm)', sep = ''))
                     }), collapse = ', ', sep = ''), ')', sep = '')
-        
+
         val = values(intervals)
         intervals$ix = 1:length(intervals)
 
@@ -1340,8 +1484,8 @@ fftab = function(ff, intervals, signatures = NULL, FUN = sum, grep = FALSE, mc.c
         chunks = split(1:length(gr), gr$chunk.id)
         if (verbose)
             cat('Split intervals\n')
-        
-        out = rbindlist(mclapply(chunks, function(ix)
+
+        out = rbindlist(parallel::mclapply(chunks, function(ix)
             {
                 chunk = gr[ix]
                 if (verbose)
@@ -1357,7 +1501,7 @@ fftab = function(ff, intervals, signatures = NULL, FUN = sum, grep = FALSE, mc.c
                         dat = as.numeric(rle.query(ff, chunk)),
                         id = rep(1:length(chunk), width(chunk))
                     )
-                    
+
                 setkey(tmp, id)
 
                 if (verbose)
@@ -1367,7 +1511,7 @@ fftab = function(ff, intervals, signatures = NULL, FUN = sum, grep = FALSE, mc.c
 
                 if (verbose)
                     cat(sprintf('Intervals %s to %s of %s: tabulated\n', chunk$num[1], chunk$num[length(chunk)], length(gr)))
-                
+
                 ix = chunk$ix
                 out = tab[1:length(chunk), ]
                 out$id = NULL
@@ -1375,7 +1519,7 @@ fftab = function(ff, intervals, signatures = NULL, FUN = sum, grep = FALSE, mc.c
                 if (verbose)
                     cat(sprintf('Intervals %s to %s of %s: FINISHED\n', chunk$num[1], chunk$num[length(chunk)], length(gr)))
 
-                return(out)                                                
+                return(out)
             }, mc.cores = mc.cores))
 
         setkey(out, ix)
@@ -1622,4 +1766,31 @@ get_seq = function(hg, gr, unlist = T, mc.cores = 1, mc.chunks = mc.cores, add.c
       }      
       return(out)
     }
+}
+
+#' Identify matches between query and dictionary
+#'
+#' Wrapper around matchPdict to identify matches between a query
+#' string query and dictionary dict (both BString objects or subclasses)
+#'
+#' @param query Query
+#' @param dict Dictionary
+#' @param midpoint Flag for output the coordinates of the match as the location,
+#'   where the midpoint of the dict string matches the given query. Default FALSE
+#' @return a vector of indices of length width(query) that contains
+#' indices of the (starting) dictionary in the query string
+#' @export
+match.bs = function(query, dict, midpoint = FALSE)
+{
+  names(dict) = as.character(1:length(dict))
+
+  tmp = sort(unlist(Biostrings::matchPDict(dict, query)))
+  out = rep(NA, length(query))
+
+  if (!midpoint)
+    out[start(tmp)] = as.numeric(names(tmp))
+  else
+    out[floor((start(tmp)+end(tmp))/2)] = as.numeric(names(tmp))
+
+  return(out)
 }

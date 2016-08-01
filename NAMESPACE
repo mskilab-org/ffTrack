@@ -8,10 +8,7 @@ export(ffTrack)
 export(fftab)
 export(filename)
 export(get_seq)
-<<<<<<< HEAD
-=======
 export(match.bs)
->>>>>>> 34ad4fe0976e1f97a39ab67bc09b86f7cce073b0
 export(mv)
 export(ranges)
 export(seq2fft)

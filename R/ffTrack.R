@@ -24,8 +24,9 @@
 ###############################################################################
 
 
+
 setOldClass('ff_vector')
-# setOldClass("GRanges")
+#setOldClass("GRanges")
 
 #' @name ffTrack-class
 #' @title ffTrack-class
@@ -41,6 +42,7 @@ setOldClass('ff_vector')
 #' @importFrom methods setClass setGeneric setMethod setRefClass
 #' @importFrom S4Vectors Rle
 #' @importFrom Biostrings DNAStringSet
+#' @importFrom GenomeInfoDb seqlengths seqinfo seqlevels
 #' @exportClass ffTrack
 #' @author Marcin Imielinski
 setClass('ffTrack', representation(.ff = 'ff_vector', ## primary ff object
@@ -234,47 +236,6 @@ setMethod('vmode', 'ffTrack', function(x)
 #' @author Marcin Imielinski
 setMethod('length', 'ffTrack', function(x)
           sum(as.numeric(width(x@.gr))))
-
-#if (!isGeneric('seqlengths'))
-  setGeneric('seqlengths', function(x) standardGeneric('seqlengths'))
-
-#' @name seqlengths
-#' @title seqlengths
-#' @description
-#'
-#' size of ffTrack object
-#'
-#' @export
-#' @author Marcin Imielinski
-setMethod('seqlengths', 'ffTrack', function(x)
-          seqlengths(x@.gr))
-
-#if (!isGeneric('seqinfo'))
-  setGeneric('seqinfo', function(x) standardGeneric('seqinfo'))
-
-#' @name seqinfo
-#' @title seqinfo
-#' @description
-#'
-#' size of ffTrack object
-#'
-#' @export
-#' @author Marcin Imielinski
-setMethod('seqinfo', 'ffTrack', function(x)
-          seqinfo(x@.gr))
-
-#if (!isGeneric('seqlevels'))
-  setGeneric('seqlevels', function(x) standardGeneric('seqlevels'))
-
-#' @name seqlevels
-#' @title seqlevels of ffTrack object
-#' @description
-#' seqlevels of ffTrack object
-#'
-#' @export
-#' @author Marcin Imielinski
-setMethod('seqlevels', 'ffTrack', function(x)
-          seqlevels(x@.gr))
 
 #' @name levels
 #' @title levels
@@ -1794,3 +1755,47 @@ match.bs = function(query, dict, midpoint = FALSE)
 
   return(out)
 }
+
+
+#if (!isGeneric('seqlengths'))
+#  setGeneric('seqlengths', function(x) standardGeneric('seqlengths'))
+
+#' @name seqlengths
+#' @title seqlengths
+#' @description
+#'
+#' size of ffTrack object
+#'
+#' @export
+#' @importFrom GenomeInfoDb seqlengths seqinfo seqlevels
+#' @author Marcin Imielinski
+setMethod('seqlengths', 'ffTrack', function(x)
+          seqlengths(x@.gr))
+
+#if (!isGeneric('seqinfo'))
+#  setGeneric('seqinfo', function(x) standardGeneric('seqinfo'))
+
+#' @name seqinfo
+#' @title seqinfo
+#' @description
+#'
+#' size of ffTrack object
+#'
+#' @export
+#' @importFrom GenomeInfoDb seqlengths seqinfo seqlevels
+#' @author Marcin Imielinski
+setMethod('seqinfo', 'ffTrack', function(x)
+          seqinfo(x@.gr))
+
+#if (!isGeneric('seqlevels'))
+# setGeneric('seqlevels', function(x) standardGeneric('seqlevels'))
+
+#' @name seqlevels
+#' @title seqlevels of ffTrack object
+#' @description
+#' seqlevels of ffTrack object
+#' @importFrom GenomeInfoDb seqlengths seqinfo seqlevels
+#' @export
+#' @author Marcin Imielinski
+setMethod('seqlevels', 'ffTrack', function(x)
+          seqlevels(x@.gr))

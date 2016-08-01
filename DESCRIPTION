@@ -15,6 +15,7 @@ Imports:
     Biostrings,
     parallel,
     methods,
+    GenomeInfoDb,
     S4Vectors,
     GenomicRanges (>= 1.18)
 Depends:

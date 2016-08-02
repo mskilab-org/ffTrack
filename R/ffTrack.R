@@ -1544,7 +1544,7 @@ get_seq = function(hg, gr, unlist = T, mc.cores = 1, mc.chunks = mc.cores, add.c
 
               hg = TwoBitFile(hg)
           }
-      
+
       gr = gr.fix(gr, hg)
       if (length(wtf <- setdiff(as.character(seqnames(gr)), seqlevels(seqinfo(hg))))>0)
           stop(paste('Please correct .. one or more input loci address sequences that do not exist on the reference:', paste(sort(wtf), collapse = ',')))

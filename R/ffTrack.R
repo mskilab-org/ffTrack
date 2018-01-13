@@ -191,6 +191,8 @@ setMethod('show', 'ffTrack', function(object)
           })
 
 
+
+
 #' @name size
 #' @title size
 #' @description
@@ -213,6 +215,9 @@ setMethod('size', 'ffTrack', function(object)
             return(sz)
           })
 
+
+
+
 #' @name vmode
 #' @title vmode
 #' @description
@@ -223,7 +228,9 @@ setMethod('size', 'ffTrack', function(object)
 #' @author Marcin Imielinski
 setGeneric('vmode', function(x) standardGeneric('vmode'))
 setMethod('vmode', 'ffTrack', function(x)
-          x@.vmode)
+    x@.vmode)
+
+
 
 
 #' @name length
@@ -235,7 +242,10 @@ setMethod('vmode', 'ffTrack', function(x)
 #' @export
 #' @author Marcin Imielinski
 setMethod('length', 'ffTrack', function(x)
-          sum(as.numeric(width(x@.gr))))
+    sum(as.numeric(width(x@.gr))))
+
+
+
 
 #' @name levels
 #' @title levels
@@ -247,6 +257,8 @@ setMethod('length', 'ffTrack', function(x)
 #' @author Marcin Imielinski
 setMethod('levels', 'ffTrack', function(x)
           x@.levels)
+
+
 
 
 #' @name levels<-
@@ -271,6 +283,9 @@ setMethod('levels<-', 'ffTrack', function(x, value)
             return(x)
           })
 
+
+
+
 #' @name ranges
 #' @title ranges
 #' @description
@@ -282,6 +297,9 @@ setMethod('levels<-', 'ffTrack', function(x, value)
 setGeneric('ranges', function(x) standardGeneric('ranges'))
 setMethod('ranges', 'ffTrack', function(x)
           x@.gr)
+
+
+
 
 #' @name filename
 #' @title filename
@@ -295,6 +313,9 @@ setGeneric('filename', function(x) standardGeneric('filename'))
 setMethod('filename', 'ffTrack', function(x)
           c(ff = x@.ff.filename, rds = x@.rds.filename))
 
+
+
+
 #' @name cp
 #' @title copy ffTrack object to new path on the file system (and all data files)
 #' @description
@@ -307,6 +328,8 @@ setMethod('cp', 'ffTrack', function(.Object, path, overwrite = FALSE)
           {
             return(mv(.Object, path, overwrite = overwrite, keep.original = TRUE))
           })
+
+
 
 
 #' @name del
@@ -332,6 +355,8 @@ setMethod('del', 'ffTrack', function(.Object, path, overwrite = FALSE)
               cat('Object files already deleted')
 
           })
+
+
 
 
 #' @name writeable<-
@@ -360,6 +385,8 @@ setMethod('writeable<-', 'ffTrack', function(.Object, value)
 
             return(.Object)
           })
+
+
 
 
 #' @name [

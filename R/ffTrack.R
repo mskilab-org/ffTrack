@@ -48,26 +48,31 @@ setClass('ffTrack', representation(.ff = 'ff_vector', ## primary ff object
                                    .levels = 'vector', ## vector of unique values (in which case stored values interpreted as 0-based factor)
                                    .blocksize = 'numeric', ## maximum addressable blocksize (.Machine$integer.max))
                                    .gr = 'GRanges', .vmode = 'character', .ff.filename = 'character', .rds.filename = 'character'))
-
+##
+## default.val = NA, overwrite = FALSE, levels = NULL, verbose = FALSE
 setMethod('initialize', 'ffTrack', function(.Object,
                                             gr, ## GRanges of input ranges
-                                            file.name, ## file.name (should have .rds suffix, if not, one will be appended
-                                            overwrite, ## whether to overwrite
-                                            levels, ## vector of unique values (only for vmode of integer or integer-like)
-                                            default.val,
-                                            verbose,
-                                            vmode = 'double') ## data mode (see above), scalar character)
+                                            file.name, ## file.name should have .rds suffix, if not, one will be appended
+                                            overwrite = FALSE, ## whether to overwrite
+                                            levels = NULL, ## vector of unique values (only for vmode of integer or integer-like)
+                                            default.val = NA,
+                                            verbose = FALSE,
+                                            vmode = 'double') ## data mode (see above), scalar character
 {
+
+    if (missing(gr) | missing(file.name)){
+        stop("Error: arguments 'gr' and 'file.name' are both required for 'ffTrack'. Please see documentation for details.")
+    }
 
     MODES = c('boolean', 'byte', 'character', 'complex', 'double', 'integer',
         'logical', 'nibble', 'quad', 'raw', 'short', 'single', 'ubyte', 'ushort')
 
     if (!(vmode[1] %in% MODES)){
-        stop(sprintf('Error: Allowable modes are %s', paste(MODES, collapse = ', ')))
+        stop(sprintf('Error: Incorrect argument "vmode". Allowable modes are %s', paste(MODES, collapse = ', ')))
     }
 
-    if (length(gr) ==0 | !any(width(gr) > 0)){
-        stop('Error: Trying to create ffTrack with empty GRanges')
+    if (length(gr) == 0 | !any(width(gr) > 0)){
+        stop('Error: Trying to create ffTrack with empty GRanges.')
     }
 
     ## start and end indices of range in ff vector
@@ -76,7 +81,8 @@ setMethod('initialize', 'ffTrack', function(.Object,
     .Object@.blocksize = .Machine$integer.max
     .Object@.gr = gr.stripstrand(gr[, 'ix.s'])
     .Object@.vmode = vmode[1]
-    if (!grepl('\\.rds$',  file.name)){
+
+    if (!grepl('\\.rds$',  file.name) & !grepl('\\.RDS$',  file.name)){
         file.name = paste(file.name, '.rds', sep = '')
     }
 
@@ -85,7 +91,7 @@ setMethod('initialize', 'ffTrack', function(.Object,
     ## touch the files
 
     if ((file.exists(file.name) | file.exists(ff.filename)) & !overwrite){
-        stop('Error: Target files already exist, to overwrite type overwrite = TRUE')
+        stop('Error: Target files already exist, to overwrite use overwrite = TRUE')
     }
 
     writeLines('', file.name)
@@ -259,7 +265,7 @@ setMethod('vmode', 'ffTrack', function(object){
 #'
 #' @export
 #' @author Marcin Imielinski
-setGeneric('len', function(object) standardGeneric('length'))
+setGeneric('len', function(object) standardGeneric('len'))
 setMethod('len', 'ffTrack', function(object){
     sum(as.numeric(width(object@.gr)))
 })
@@ -292,7 +298,7 @@ setMethod('levels', 'ffTrack', function(object){
 #' @param value param info
 #' @export
 #' @author Marcin Imielinski
-setGeneric('set_levels', function(object, value) standardGeneric('levels'))
+setGeneric('set_levels', function(object, value) standardGeneric('set_levels'))
 setMethod('set_levels', 'ffTrack', function(object, value)
 {
     if (!all(is.na(object@.levels))){
@@ -585,7 +591,7 @@ setMethod('writeable', 'ffTrack', function(.Object) file.access(.Object@.ff.file
 #' @title  mv
 #' @description
 #'
-#' mMves location of .Object to new filepath, returns new updated object
+#' moves location of .Object to new filepath, returns new updated object
 #'
 #' @export
 #' @author Marcin Imielinski
@@ -844,19 +850,18 @@ setMethod('[<-', 'ffTrack', function(x, i, value, op = NULL, raw = TRUE, full = 
 #' @title ffTrack
 #' @description
 #'
-#' Constructs new \code{ffTrack} for off-line storage of genomic data.  Allocates memory to store one of several data "modes"
+#' Constructs new \code{ffTrack} for offline storage of genomic data.  Allocates memory to store one of several data "modes"
 #' (e.g. \code{numeric}, \code{byte}, \code{character}) data types across a fixed interval set (\code{GRanges}).
-#' Useful for numeric (e.g. conservation track)
-#' or character (e.g. human genome sequence) data. Physical instantiation will result in the creation of one or more
-#' "heavy" .ffData files and a lightweight .rds pointer which is the ffTrack object that is returned by this function.  That
-#' object can be read or written to using GRanges indices.
+#' Useful for numeric (e.g. conservation track) or character (e.g. human genome sequence) data. 
+#' Physical instantiation will result in the creation of one or more "heavy" *.ffData files and a lightweight *.rds pointer 
+#' which is the ffTrack object that is returned by this function.  That object can be read or written to using GRanges indices.
 #'
 #' Initialization requires (1) a filename (2) a set of GRanges corresponding to the "space"
 #' (3) a vmode (one of the following:
 #' \itemize{
 #' \item boolean (1 bit logical)
 #' \item logical (2 bit logical + NA)
-#' \item quad (2 bit unsigned integer without NA)
+#' \item quad (2 bit unsigned integer without NA)   (NOTE: quad' allows efficient storage of genomic data as an 'A','T','G','C' factor. See 'ff' documentation.)
 #' \item nibble (4 bit unsigned integer without NA)
 #' \item byte (8 bit signed integer with NA)
 #' \item ubyte (8 bit unsigned integer without NA)
@@ -865,11 +870,9 @@ setMethod('[<-', 'ffTrack', function(x, i, value, op = NULL, raw = TRUE, full = 
 #' \item integer (32 bit signed integer with NA)
 #' \item single (32 bit float)
 #' \item double (64 bit float)
-#' \item complex (2 x 64 bit float),
 #' \item raw (8 bit unsigned char)
-#' \item character (character)
 #' }
-#' Initialization will create two files (1) an .rds object meta data (2) .ffdata binary ff object
+#' Initialization will create two files (1) an .rds object meta data (2) *.ffdata binary ff object
 #' These files should have static paths (i.e. should not be moved outside of R) - otherwise will break.
 #' However the object will still be functional if the .rds file is moved to another location and loaded
 #' from there.
@@ -909,7 +912,7 @@ ffTrack = function(gr, file.name, default.val = NA, overwrite = FALSE, levels = 
 #' @param verbose logical flag
 #' @param buffer integer size of how big of a buffer to use when transferring data from BigWig to ffTrack object; number of bases to access at a time
 #' @param skip.sweep logical flag (default FALSE) if TRUE will skip the sweep of "region" for the portions that have non-NA values; if TRUE will not sweep for covered region, just make a whole genome file or a file across provided regions
-#' @param vmode  character specifyhing vmode to use for encoding (by default double)
+#' @param vmode character specifying vmode to use for encoding (default == 'double')
 #' @param resume logical flag specifying whether to resume the populatino of an already existing ffTrack object (default FALSE)
 #' @param min.gapwidth  minimum gap-width with which to merge reference adjacent intervals, this will mildly increase the file size but reduce the range complexity of the GRanges object; flank (to reduce the range complexity of the ffdata skeleton, but increase file size)
 #' @return ffTrack object corresponding to the data in the BigWig file
@@ -1525,10 +1528,9 @@ seq2fft = function(seq, nnuc = 0, dict = NULL, chrsub = TRUE, neg = FALSE, regio
 #' @title Tabulate data in an \code{ffTrack}
 #' @description
 #'
-#' Tabulates data in ffTrack file across a set of interavls (GRanges)
-#' by counting the number of positions matching a given "signature" or
-#' applying FUN to aggregate data.  Returns the input GRanges populated with one or more meta data columns
-#' of counts or averages.
+#' Tabulates data in ffTrack file across a set of intervals (GRanges) by counting the number of positions 
+#' matching a given "signature" or applying FUN to aggregate data.  
+#' Returns the input GRanges populated with one or more meta data columns of counts or averages.
 #'
 #' Similar to gr.val in gUtils
 #'

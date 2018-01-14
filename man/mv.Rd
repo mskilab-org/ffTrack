@@ -7,7 +7,7 @@
 mv(.Object, path, overwrite = FALSE, keep.original = FALSE)
 }
 \description{
-mMves location of .Object to new filepath, returns new updated object
+moves location of .Object to new filepath, returns new updated object
 }
 \author{
 Marcin Imielinski

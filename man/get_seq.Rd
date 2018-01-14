@@ -8,7 +8,7 @@ get_seq(hg, gr, unlist = TRUE, mc.cores = 1, mc.chunks = mc.cores,
   as.data.table = FALSE, verbose = FALSE)
 }
 \arguments{
-\item{hg}{A BSgenome or and ffTrack object with levels = c('A','TRUE','G','C','N')}
+\item{hg}{A BSgenome or and ffTrack object with levels = c('A','T','G','C','N')}
 
 \item{gr}{GRanges object to define the ranges}
 
@@ -26,7 +26,7 @@ get_seq(hg, gr, unlist = TRUE, mc.cores = 1, mc.chunks = mc.cores,
 DNAStringSet of sequences
 }
 \description{
-Retrieve genomic sequenes
+Retrieve genomic sequences
 
 Wrapper around getSeq which does the "chr" and seqnames conversion if necessary
 also handles GRangesList queries

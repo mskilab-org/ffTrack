@@ -69,23 +69,28 @@ test_that('ffTrack', {
     ## mv ## then check it exists as done
     expect_error(mv(testff))
     expect_error(mv(testff, '/path/does/not/exist'))
+    dir.create('/home/travis/build/mskilab/ffTrack/tmp/')
     mv(testff, '/home/travis/build/mskilab/ffTrack/tmp/')
-    ##expect_true(file.exists('/home/travis/build/mskilab/ffTrack/tmp/test.boolean.ffdata'))
-    ##expect_true(file.exists('/home/travis/build/mskilab/ffTrack/tmp/test.boolean.rds'))
-    ##expect_false(file.exists('/home/travis/build/mskilab/ffTrack/tests/testthat/test.boolean.ffdata'))
-    ##expect_false(file.exists('/home/travis/build/mskilab/ffTrack/tests/testthat/test.boolean.rds'))   
+    expect_true(file.exists('/home/travis/build/mskilab/ffTrack/tmp/test.boolean.ffdata'))
+    expect_true(file.exists('/home/travis/build/mskilab/ffTrack/tmp/test.boolean.rds'))
+    expect_false(file.exists('/home/travis/build/mskilab/ffTrack/tests/testthat/test.boolean.ffdata'))
+    expect_false(file.exists('/home/travis/build/mskilab/ffTrack/tests/testthat/test.boolean.rds'))   
     ## del 
-    del(testff)
-    expect_false(file.exists('/home/travis/build/mskilab/ffTrack/ffTrack.Rcheck/tests/testthat/test.boolean.ffdata'))
-    expect_false(file.exists('/home/travis/build/mskilab/ffTrack/ffTrack.Rcheck/tests/testthat/test.boolean.rds'))
+    test2 = ffTrack(gr, file.name = 'test2.boolean.rds', overwrite = TRUE, vmode = 'boolean')
+    del(test2)
+    expect_false(file.exists('/home/travis/build/mskilab/ffTrack/ffTrack.Rcheck/tests/testthat/test2.boolean.ffdata'))
+    expect_false(file.exists('/home/travis/build/mskilab/ffTrack/ffTrack.Rcheck/tests/testthat/test2.boolean.rds'))
     
 })
 
 
 
 
-test_that('ffTrack', {
-
+test_that('get_seq', {
+    hg19 = getBSgenome('BSgenome.Hsapiens.UCSC.hg19')
+    gr = GRanges('1:10000-20000')
+    ## default args
+    expect_match(substr(as.character(get_seq(hg19, gr)[[1]]), 1, 10), 'NTAACCCTAA')
 })
 
 

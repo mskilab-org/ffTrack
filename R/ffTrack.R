@@ -1221,12 +1221,12 @@ wig2fft = function(wigpath, fftpath = gsub('(\\.wig.*)', '.rds', wigpath), chrsu
 #' @title get_seq 
 #' @description
 #'
-#' Retrieve genomic sequenes
+#' Retrieve genomic sequences
 #'
 #' Wrapper around getSeq which does the "chr" and seqnames conversion if necessary
 #' also handles GRangesList queries
 #'
-#' @param hg A BSgenome or and ffTrack object with levels = c('A','TRUE','G','C','N')
+#' @param hg A BSgenome or and ffTrack object with levels = c('A','T','G','C','N')
 #' @param gr GRanges object to define the ranges
 #' @param unlist logical whether to unlist the final output into a single DNAStringSet. Default TRUE
 #' @param mc.cores Optional multicore call. Default 1

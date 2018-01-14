@@ -1,5 +1,7 @@
 library(ffTrack)
 
+library(BSgenome)
+
 context('ffTrack operations')
 
 
@@ -82,7 +84,6 @@ test_that('ffTrack', {
     expect_false(file.exists('/home/travis/build/mskilab/ffTrack/ffTrack.Rcheck/tests/testthat/test2.boolean.rds'))
     
 })
-
 
 
 

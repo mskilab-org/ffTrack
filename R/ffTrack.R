@@ -369,8 +369,8 @@ setMethod('cp', 'ffTrack', function(.Object, path, overwrite = FALSE){
 
 
 
-#' @name seqlengths
-#' @title seqlengths
+#' @name ffseqlengths
+#' @title ffseqlengths
 #' @description
 #'
 #' seqlengths of ffTrack object
@@ -378,8 +378,8 @@ setMethod('cp', 'ffTrack', function(.Object, path, overwrite = FALSE){
 #' @export
 #' @importFrom GenomeInfoDb seqlengths seqinfo seqlevels
 #' @author Marcin Imielinski
-setGeneric('seqlengths', function(object) standardGeneric('seqlengths'))
-setMethod('seqlengths', 'ffTrack', function(object){
+setGeneric('ffseqlengths', function(object) standardGeneric('ffseqlengths'))
+setMethod('ffseqlengths', 'ffTrack', function(object){
     seqlengths(object@.gr)
 })
 

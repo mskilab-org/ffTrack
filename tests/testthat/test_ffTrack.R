@@ -46,20 +46,39 @@ test_that('ffTrack', {
     expect_equal(len(testff), 10001)
     ## levels
     ## set_levels
+    expect_error(set_levels(testff))
     ## ranges
     expect_true(is(ranges(testff), 'GRanges'))
     expect_equal(width(ranges(testff)), 10001)
+    expect_equal(ranges(testff)$ix.s, 1)
     ## filename
-    ## cp ## then check it exists as done
+    expect_match(as.character(filename(testff)[1]), '/home/travis/build/mskilab/ffTrack/tests/testthat/test.boolean.ffdata')
+    expect_match(as.character(filename(testff)[2]), '/home/travis/build/mskilab/ffTrack/tests/testthat/test.boolean.rds')
+    ## cp 
+    expect_error(cp(testff))
+    expect_error(cp(testff, '/home/travis/build/mskilab/ffTrack'), NA)  ## check function works without error
+    expect_true(file.exists('/home/travis/build/mskilab/ffTrack/test.boolean.ffdata'))
+    expect_true(file.exists('/home/travis/build/mskilab/ffTrack/test.boolean.rds'))
     ## seqlengths
     ## seqinfo
     ## seqlevels
-    ## del 
-    ## writeable_status
     ## writeable
+    expect_true(as.logical(writeable(testff)))
+    ## writeable_status
+    expect_error(writeable_status(testff))   ## looks like function doesn't work
     ## mv ## then check it exists as done
-
-
+    expect_error(mv(testff))
+    expect_error(mv(testff, '/path/does/not/exist'))
+    mv(testff, '/home/travis/build/mskilab/ffTrack/tests/')
+    expect_true(file.exists('/home/travis/build/mskilab/ffTrack/tests/test.boolean.ffdata'))
+    expect_true(file.exists('/home/travis/build/mskilab/ffTrack/tests/test.boolean.rds'))
+    expect_false(file.exists('/home/travis/build/mskilab/ffTrack/tests/testthat/test.boolean.ffdata'))
+    expect_false(file.exists('/home/travis/build/mskilab/ffTrack/tests/testthat/test.boolean.rds'))   
+    ## del 
+    del(testff)
+    expect_false(file.exists('/home/travis/build/mskilab/ffTrack/tests/test.boolean.ffdata'))
+    expect_false(file.exists('/home/travis/build/mskilab/ffTrack/tests/test.boolean.rds'))
+    
 })
 
 

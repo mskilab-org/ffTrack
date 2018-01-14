@@ -55,10 +55,10 @@ test_that('ffTrack', {
     expect_match(as.character(filename(testff)[1]), '/home/travis/build/mskilab/ffTrack/ffTrack.Rcheck/tests/testthat/test.boolean.ffdata')
     expect_match(as.character(filename(testff)[2]), '/home/travis/build/mskilab/ffTrack/ffTrack.Rcheck/tests/testthat/test.boolean.rds')
     ## cp 
-    ##expect_error(cp(testff))
-    ##expect_error(cp(testff, '/home/travis/build/mskilab/ffTrack/ffTrack.Rcheck/tests/'), NA)  ## check function works without error
-    ##expect_true(file.exists('/home/travis/build/mskilab/ffTrack/ffTrack.Rcheck/tests/test.boolean.ffdata'))
-    ##expect_true(file.exists('/home/travis/build/mskilab/ffTrack/ffTrack.Rcheck/tests/test.boolean.rds'))
+    expect_error(cp(testff))
+    expect_error(cp(testff, '/home/travis/build/mskilab/ffTrack/ffTrack.Rcheck/tests/'), NA)  ## check function works without error
+    expect_true(file.exists('/home/travis/build/mskilab/ffTrack/ffTrack.Rcheck/tests/test.boolean.ffdata'))
+    expect_true(file.exists('/home/travis/build/mskilab/ffTrack/ffTrack.Rcheck/tests/test.boolean.rds'))
     ## seqlengths
     ## seqinfo
     ## seqlevels
@@ -69,20 +69,24 @@ test_that('ffTrack', {
     ## mv ## then check it exists as done
     expect_error(mv(testff))
     expect_error(mv(testff, '/path/does/not/exist'))
-    ##mv(testff, '/home/travis/build/mskilab/ffTrack/tmp/')
+    mv(testff, '/home/travis/build/mskilab/ffTrack/tmp/')
     ##expect_true(file.exists('/home/travis/build/mskilab/ffTrack/tmp/test.boolean.ffdata'))
     ##expect_true(file.exists('/home/travis/build/mskilab/ffTrack/tmp/test.boolean.rds'))
     ##expect_false(file.exists('/home/travis/build/mskilab/ffTrack/tests/testthat/test.boolean.ffdata'))
     ##expect_false(file.exists('/home/travis/build/mskilab/ffTrack/tests/testthat/test.boolean.rds'))   
     ## del 
-    ##del(testff)
-    ##expect_false(file.exists('/home/travis/build/mskilab/ffTrack/ffTrack.Rcheck/tests/testthat/test.boolean.ffdata'))
-    ##expect_false(file.exists('/home/travis/build/mskilab/ffTrack/ffTrack.Rcheck/tests/testthat/test.boolean.rds'))
+    del(testff)
+    expect_false(file.exists('/home/travis/build/mskilab/ffTrack/ffTrack.Rcheck/tests/testthat/test.boolean.ffdata'))
+    expect_false(file.exists('/home/travis/build/mskilab/ffTrack/ffTrack.Rcheck/tests/testthat/test.boolean.rds'))
     
 })
 
 
 
+
+test_that('ffTrack', {
+
+})
 
 
 

@@ -19,9 +19,10 @@ Imports:
     methods,
     GenomeInfoDb,
     S4Vectors,
-    GenomicRanges (>= 1.18)
+    GenomicRanges (>= 1.18), 
+    BSgenome
 Suggests: 
-    testthat, 
+    testthat,
     BSgenome.Hsapiens.UCSC.hg19
 License: GPL-2
 BugReports: http://github.com/mskilab/ffTrack/issues

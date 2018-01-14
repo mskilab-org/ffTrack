@@ -4,7 +4,7 @@
 \alias{filename}
 \title{filename}
 \usage{
-filename(x)
+filename(object)
 }
 \description{
 filename associated with ffTrack object

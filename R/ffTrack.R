@@ -24,7 +24,6 @@
 ###############################################################################
 
 setOldClass('ff_vector')
-#setOldClass("GRanges")
 
 #' @name ffTrack-class
 #' @title ffTrack-class
@@ -67,7 +66,7 @@ setMethod('initialize', 'ffTrack', function(.Object,
         stop(sprintf('Error: Allowable modes are %s', paste(MODES, collapse = ', ')))
     }
 
-    if (length(gr) ==0 | !any(width(gr)>0)){
+    if (length(gr) ==0 | !any(width(gr) > 0)){
         stop('Error: Trying to create ffTrack with empty GRanges')
     }
 
@@ -200,7 +199,7 @@ setMethod('show', 'ffTrack', function(object){
     validObject(object)
     fn = object@.ff.filename
 
-    if (length(object@.ffaux)>0){
+    if (length(object@.ffaux) > 0){
         fn = paste(c(fn, sapply(object@.ffaux, filename)), collapse = ', ')
     }
     
@@ -244,24 +243,25 @@ setMethod('size', 'ffTrack', function(object)
 #'
 #' @export
 #' @author Marcin Imielinski
-setGeneric('vmode', function(x) standardGeneric('vmode'))
-setMethod('vmode', 'ffTrack', function(x){
-    x@.vmode
+setGeneric('vmode', function(object) standardGeneric('vmode'))
+setMethod('vmode', 'ffTrack', function(object){
+    object@.vmode
 })
 
 
 
 
-#' @name length
-#' @title length
+#' @name len
+#' @title len
 #' @description
 #'
-#' length of ffTrack object
+#' len of ffTrack object
 #'
 #' @export
 #' @author Marcin Imielinski
-setMethod('length', 'ffTrack', function(x){
-    sum(as.numeric(width(x@.gr)))
+setGeneric('len', function(object) standardGeneric('length'))
+setMethod('len', 'ffTrack', function(object){
+    sum(as.numeric(width(object@.gr)))
 })
 
 
@@ -275,36 +275,39 @@ setMethod('length', 'ffTrack', function(x){
 #'
 #' @export
 #' @author Marcin Imielinski
-setMethod('levels', 'ffTrack', function(x){
-    x@.levels
+setGeneric('levels', function(object) standardGeneric('levels'))
+setMethod('levels', 'ffTrack', function(object){
+    object@.levels
 })
 
 
 
 
-#' @name levels<-
-#' @title levels<-
+#' @name set_levels
+#' @title set_levels
 #' @description
 #'
 #' set levels of ffTrack object
 #'
+#' @param value param info
 #' @export
 #' @author Marcin Imielinski
-setMethod('levels<-', 'ffTrack', function(x, value)
+setGeneric('set_levels', function(object, value) standardGeneric('levels'))
+setMethod('set_levels', 'ffTrack', function(object, value)
 {
-    if (!all(is.na(x@.levels))){
+    if (!all(is.na(object@.levels))){
         stop('Error: Levels not defined in original ffTrack instantiation, please re-instantiate to add levels')
     }
 
-    if (is.vector(value) & length(value) == length(x@.levels)){
-        x@.levels = value
+    if (is.vector(value) & length(value) == length(object@.levels)){
+        object@.levels = value
     }
     else{
         stop('Error: Replacement levels must be a vector of same length as current set of levels')
     }
 
-    validObject(x)
-    return(x)
+    validObject(object)
+    return(object)
 
 })
 
@@ -319,9 +322,9 @@ setMethod('levels<-', 'ffTrack', function(x, value)
 #'
 #' @export
 #' @author Marcin Imielinski
-setGeneric('ranges', function(x) standardGeneric('ranges'))
-setMethod('ranges', 'ffTrack', function(x){
-    x@.gr
+setGeneric('ranges', function(object) standardGeneric('ranges'))
+setMethod('ranges', 'ffTrack', function(object){
+    object@.gr
 })
 
 
@@ -335,9 +338,9 @@ setMethod('ranges', 'ffTrack', function(x){
 #'
 #' @export
 #' @author Marcin Imielinski
-setGeneric('filename', function(x) standardGeneric('filename'))
-setMethod('filename', 'ffTrack', function(x){
-    c(ff = x@.ff.filename, rds = x@.rds.filename)
+setGeneric('filename', function(object) standardGeneric('filename'))
+setMethod('filename', 'ffTrack', function(object){
+    c(ff = object@.ff.filename, rds = object@.rds.filename)
 })
 
 
@@ -357,6 +360,56 @@ setMethod('cp', 'ffTrack', function(.Object, path, overwrite = FALSE){
     return(mv(.Object, path, overwrite = overwrite, keep.original = TRUE))
 })
 
+
+
+
+#' @name seqlengths
+#' @title seqlengths
+#' @description
+#'
+#' seqlengths of ffTrack object
+#'
+#' @export
+#' @importFrom GenomeInfoDb seqlengths seqinfo seqlevels
+#' @author Marcin Imielinski
+setGeneric('seqlengths', function(object) standardGeneric('seqlengths'))
+setMethod('seqlengths', 'ffTrack', function(object){
+    seqlengths(object@.gr)
+})
+
+
+
+
+#' @name seqinfo
+#' @title seqinfo
+#' @description
+#'
+#' seqinfo of ffTrack object
+#'
+#' @export
+#' @importFrom GenomeInfoDb seqlengths seqinfo seqlevels
+#' @author Marcin Imielinski
+setGeneric('seqinfo', function(object) standardGeneric('seqinfo'))
+setMethod('seqinfo', 'ffTrack', function(object){
+    seqinfo(object@.gr)
+})
+
+
+
+
+#' @name seqlevels
+#' @title seqlevels of ffTrack object
+#' @description
+#'
+#' seqlevels of ffTrack object
+#'
+#' @importFrom GenomeInfoDb seqlengths seqinfo seqlevels
+#' @export
+#' @author Marcin Imielinski
+setGeneric('seqlevels', function(object) standardGeneric('seqlevels'))
+setMethod('seqlevels', 'ffTrack', function(object){
+    seqlevels(object@.gr)
+})
 
 
 
@@ -388,7 +441,7 @@ setMethod('del', 'ffTrack', function(.Object, path, overwrite = FALSE){
 
 
 
-#' @name writeable<-
+#' @name writeable_status
 #' @title toggle writeable status of ffTrack object
 #' @description 
 #'
@@ -396,8 +449,8 @@ setMethod('del', 'ffTrack', function(.Object, path, overwrite = FALSE){
 #'
 #' @export
 #' @author Marcin Imielinski
-setGeneric('writeable<-', function(.Object, value) standardGeneric('writeable<-'))
-setMethod('writeable<-', 'ffTrack', function(.Object, value)
+setGeneric('writeable_status', function(.Object, value) standardGeneric('writeable_status'))
+setMethod('writeable_status', 'ffTrack', function(.Object, value)
 {
     if (!is.logical(value)){
         stop('Error: value must be logical')
@@ -436,6 +489,7 @@ setMethod('writeable<-', 'ffTrack', function(.Object, value)
 #' @return either vector (if i is a GRanges) or vector list (if i is a GRangesList)
 #' @export
 #' @author Marcin Imielinski
+## setGeneric('[', function(x, i, gr, raw) standardGeneric('['))
 setMethod('[', 'ffTrack', function(x, i, gr = FALSE, raw = FALSE)
 {
     if (inherits(i, 'GRangesList')){
@@ -640,6 +694,7 @@ setMethod('mv', 'ffTrack', function(.Object, path, overwrite = FALSE, keep.origi
 #' @param full logical flag whether the replacement value is a single vector whose sum is the summed width of the ranges "i"
 #' @export
 #' @author Marcin Imielinski
+## setGeneric('[<-', function(x, i, value, op, raw, full) standardGeneric('[<-'))
 setMethod('[<-', 'ffTrack', function(x, i, value, op = NULL, raw = TRUE, full = FALSE)
 {
     query = i;
@@ -1643,284 +1698,6 @@ fftab = function(ff, intervals, signatures = NULL, FUN = sum, grep = FALSE, mc.c
 
 
 
-#' @name get_seq
-#' @title get_seq
-#' @description
-#'
-#' Retrieve genomic sequenes
-#'
-#' Wrapper around getSeq which does the "chr" and seqnames conversion if necessary
-#' also handles GRangesList queries
-#'
-#' @param hg A BSgenome or and ffTrack object with levels = c('A','T','G','C','N')
-#' @param gr GRanges object to define the ranges
-#' @param unlist logical whether to unlist the final output into a single DNAStringSet. Default TRUE
-#' @param mc.cores Optional multicore call. Default 1
-#' @param mc.chunks Optional define how to chunk the multicore call. Default mc.cores
-#' @param add.chr Optional
-#' @param as.data.table Optional
-#' @param verbose Increase verbosity
-#' @return DNAStringSet of sequences
-#' @export
-get_seq = function(hg, gr, unlist = T, mc.cores = 1, mc.chunks = mc.cores, add.chr = TRUE, as.data.table = FALSE, verbose = FALSE)
-{
-    if (inherits(gr, 'GRangesList')){
-        grl = gr;
-        old.names = names(grl);
-        gr = unlist(grl);
-        names(gr) = unlist(lapply(1:length(grl), function(x) rep(x, length(grl[[x]]))))
-        seq = get_seq(hg, gr, mc.cores = mc.cores, mc.chunks = mc.chunks, verbose = verbose)
-        cl = class(seq)
-        out = split(seq, names(gr))
-        out = out[order(as.numeric(names(out)))]
-        if (unlist){
-          out = do.call('c', lapply(out, function(x) do.call(cl, list(unlist(x)))))
-        }
-        names(out) = names(grl)
-        return(out)
-    }
-    else{
-
-        if (is(hg, 'ffTrack')){
-            if (!all(sort(levels(hg)) == sort(c('A', 'T', 'G', 'C', 'N')))){
-                cat("ffTrack not in correct format for get_seq, levels must contain only: 'A', 'T', 'G', 'C', 'N'\n")
-            }
-        }
-      
-        if (is.character(hg)){
-
-            if (!file.exists(hg)){
-                stop(paste0('Error: ', hg, 'file not found'))
-            }
-              
-            if (!grepl('\\.2bit$', hg)){
-                cat('Only .2bit files supported for genomes')
-            }
-
-            hg = TwoBitFile(hg)
-        }
-
-        gr = gr.fix(gr, hg)
-        if (length(wtf <- setdiff(as.character(seqnames(gr)), seqlevels(seqinfo(hg)))) > 0){
-            stop(paste('Error: One or more input loci address sequences that do not exist on the reference:', paste(sort(wtf), collapse = ',')))
-        }
- 
-        ## only sub in 'chr' if hg is a BSGenome
-        if (add.chr == TRUE){
-            if (!all(grepl('chr', as.character(seqnames(gr)))) & all(grepl('chr', names(seqlengths(hg))))){
-                gr = gr.chr(gr)
-            }
-        }
-
-        if (mc.cores > 1){
-
-            ix = suppressWarnings(split(1:length(gr), 1:mc.chunks))
-
-            if (is(hg, 'ffTrack')){
-
-                mcout = mclapply(ix, function(x){
-
-                    tmp = hg[gr[x]] ## already  comes out reverse if the sequence is on the negative strand
-                  
-                    if (any(is.na(tmp))){
-                        stop('Error: ffTrack corrupt: has NA values, cannot convert to DNAString')
-                    }
-
-                    if (!as.data.table) {
-                        bst = DNAStringSet(sapply(split(tmp, as.numeric(Rle(1:length(x), width(gr)[x]))), function(y) paste(y, collapse = '')))
-                        names(bst) = names(gr)[x]
-                    } 
-                    else {
-                        bst = data.table(seq=sapply(split(tmp, as.numeric(Rle(1:length(x), width(gr)[x]))), function(y) paste(y, collapse='')))
-                        bst[, names:=names(gr)[x]]
-                    }
-
-                    if (any(strand(gr)[x]=='-')){
-                        ix.tmp = as.logical(strand(gr)[x]=='-')
-                    }
-                    if (!as.data.table){
-                        bst[ix.tmp] = Biostrings::complement(bst[ix.tmp])
-                    }
-                    else{
-                        bst$seq[ix.tmp] <- as.character(Biostrings::complement(DNAStringSet(bst$seq[ix.tmp])))
-                    }
-                                                     
-                    if (verbose){
-                        cat('.')
-                    }
-                  
-                    return(bst)
-
-                }, mc.cores = mc.cores)
-
-                if (!as.data.table){
-
-                    if (length(mcout)>1){
-                        tmp = c(mcout[[1]], mcout[[2]])
-                    }
-
-                    out = do.call('c', mcout)[order(unlist(ix))]
-                 
-                    ## weird class conversion bug 
-                    if (class(out) == 'list') {
-                        out = eval(parse(text = paste('c(', paste0("mcout[[", 1:length(mcout), "]]", collapse = ','), ')')))[order(unlist(ix))]
-                    }
-                }  
-                else{
-                  out = rbindlist(mcout)
-                }
-            }
-            else if (is(hg, '"TwoBitFile')){
-
-                if (verbose){
-                    cat('Reading from 2bit file', path(hg), '\n')
-                }
-
-                mcout = mclapply(ix, function(x) {
-
-                    bst = import(hg, which = gr)
-                          
-                    if (as.data.table) {
-                        bst = data.table(seq=sapply(split(bst$seq, as.numeric(Rle(1:length(gr), width(gr)))), function(x) paste(x, collapse='')))
-                        bst[, names:=names(gr)]
-                    }
-
-                    if (any(strand(gr)[x]=='-')){
-                        ix.tmp = as.logical(strand(gr)[x]=='-')
-                        if (!as.data.table){
-                            bst[ix.tmp] = Biostrings::reverseComplement(bst[ix.tmp])
-                        }
-                        else{
-                            bst$seq[ix.tmp] = as.character(Biostrings::reverseComplement(DNAStringSet(bst$seq[ix.tmp])))
-                        }
-                    }
-                          
-                    if (verbose){
-                        cat('.')
-                    }
-                          
-                    return(bst)
-
-                }, mc.cores = mc.cores)
-
-                if (!as.data.table){
-
-                    if (length(mcout)>1){
-                        tmp = c(mcout[[1]], mcout[[2]])
-                    }
-
-                    out = do.call('c', mcout)[order(unlist(ix))]
-
-                    ## if still a list then beat into a DNAStringSet
-                    if (class(out) == 'list'){
-                        out = eval(parse(text = paste('c(', paste0("mcout[[", 1:length(mcout), "]]", collapse = ','), ')')))[order(unlist(ix))]                              
-                    }
-                }
-                else{
-                    out = rbindlist(mcout)
-                }
-            }          
-            else{
-                out = do.call(c, mclapply(ix, function(x){
-
-                    if (verbose){
-                        cat('.')
-                    }
- 
-                    return(getSeq(hg, gr[x]))
-
-                }, mc.cores = mc.cores))[order(unlist(ix))]
-
-                if (verbose){
-                    cat('\n')
-                }
-            }
-        }
-        else{
-
-            if (is(hg, 'ffTrack')){
-
-                tmp = hg[gr] ## already  comes out reverse if the sequence is on the negative strand
-
-                tmp[is.na(tmp)] = 'N'
-
-                if (any(is.na(tmp))){
-                    stop('Error: ffTrack corrupt: has NA values, cannot convert to DNAString')
-                }
-              
-                if (as.data.table) {
-                    bst = data.table(seq=sapply(split(tmp, as.numeric(Rle(1:length(gr), width(gr)))), function(x) paste(x, collapse='')))
-                    bst[, names:=names(gr)]
-                } 
-                else {
-                    bst = DNAStringSet(sapply(split(tmp, as.numeric(Rle(1:length(gr), width(gr)))), function(x) paste(x, collapse = '')))
-                    names(bst) = names(gr)
-                }
-
-                if (any(as.character(strand(gr))=='-')){
-
-                    ix = as.logical(strand(gr)=='-')
-                    if (!as.data.table) {
-                        bstc = as.character(bst)
-                        bstc[ix] = as.character(Biostrings::complement(bst[ix]))
-                        bst = DNAStringSet(bstc)  ## BIZARRE bug with line below
-                        #bst[ix] = Biostrings::complement(bst[ix])
-                    } 
-                    else { 
-                        bst$seq[ix] = as.character(Biostrings::complement(DNAStringSet(bst$seq[ix])))
-                    }
-                }
-              
-                return(bst)
-            }
-            else if (inherits(hg, 'TwoBitFile')){
-
-                if (verbose){
-                    cat('Reading from 2bit file', path(hg), '\n')
-                }
-
-                bst = as.character(import(hg, which = gr))
-                  
-                if (as.data.table) {
-                    bst = data.table(seq=sapply(split(bst, as.vector(Rle(1:length(gr), width(gr)))), function(x) paste(x, collapse='')))
-                    bst[, names:=names(gr)]
-                }
-                  
-                if (any(strand(gr)=='-')){
-
-                    ix.tmp = as.logical(strand(gr)=='-')
-
-                    if (!as.data.table){
-                        bst[ix.tmp] = as.character(Biostrings::reverseComplement(DNAStringSet(bst[ix.tmp])))
-                    }
-                    else{
-                        bst$seq[ix.tmp] = as.character(Biostrings::reverseComplement(DNAStringSet(bst$seq[ix.tmp])))
-                    }
-                  
-                    if (verbose){
-                        cat('.')
-                    }
-
-                    if (!as.data.table){
-                        bst = DNAStringSet(bst)
-                    }
-
-                    return(bst)
-                }
-            }         
-            else{
-                out = getSeq(hg, gr)
-            }           
-        } 
-
-    return(out)
-
-    }
-}
-
-
-
-
 #' @name match.bs
 #' @title 
 #' @description
@@ -1953,52 +1730,6 @@ match.bs = function(query, dict, midpoint = FALSE)
 }
 
 
-
-
-#' @name seqlengths
-#' @title seqlengths
-#' @description
-#'
-#' seqlengths of ffTrack object
-#'
-#' @export
-#' @importFrom GenomeInfoDb seqlengths seqinfo seqlevels
-#' @author Marcin Imielinski
-setMethod('seqlengths', 'ffTrack', function(x){
-    seqlengths(x@.gr)
-})
-
-
-
-
-#' @name seqinfo
-#' @title seqinfo
-#' @description
-#'
-#' seqinfo of ffTrack object
-#'
-#' @export
-#' @importFrom GenomeInfoDb seqlengths seqinfo seqlevels
-#' @author Marcin Imielinski
-setMethod('seqinfo', 'ffTrack', function(x){
-    seqinfo(x@.gr)
-})
-
-
-
-
-#' @name seqlevels
-#' @title seqlevels of ffTrack object
-#' @description
-#'
-#' seqlevels of ffTrack object
-#'
-#' @importFrom GenomeInfoDb seqlengths seqinfo seqlevels
-#' @export
-#' @author Marcin Imielinski
-setMethod('seqlevels', 'ffTrack', function(x){
-    seqlevels(x@.gr)
-})
 
 
 

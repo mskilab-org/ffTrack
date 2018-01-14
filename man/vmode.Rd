@@ -4,7 +4,7 @@
 \alias{vmode}
 \title{vmode}
 \usage{
-vmode(x)
+vmode(object)
 }
 \description{
 vmode of ffTrack object

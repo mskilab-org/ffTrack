@@ -4,7 +4,7 @@
 \alias{ranges}
 \title{ranges}
 \usage{
-ranges(x)
+ranges(object)
 }
 \description{
 ranges underlying ffTrack object

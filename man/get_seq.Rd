@@ -4,11 +4,8 @@
 \alias{get_seq}
 \title{get_seq}
 \usage{
-get_seq(hg, gr, unlist = T, mc.cores = 1, mc.chunks = mc.cores,
-  add.chr = TRUE, as.data.table = FALSE, verbose = FALSE)
-
-get_seq(hg, gr, unlist = T, mc.cores = 1, mc.chunks = mc.cores,
-  add.chr = TRUE, as.data.table = FALSE, verbose = FALSE)
+get_seq(hg, gr, unlist = TRUE, mc.cores = 1, mc.chunks = mc.cores,
+  as.data.table = FALSE, verbose = FALSE)
 }
 \arguments{
 \item{hg}{A BSgenome or and ffTrack object with levels = c('A','TRUE','G','C','N')}
@@ -21,37 +18,14 @@ get_seq(hg, gr, unlist = T, mc.cores = 1, mc.chunks = mc.cores,
 
 \item{mc.chunks}{Optional define how to chunk the multicore call. Default mc.cores}
 
-\item{add.chr}{Optional}
-
 \item{as.data.table}{boolean}
-
-\item{verbose}{Increase verbosity}
-
-\item{hg}{A BSgenome or and ffTrack object with levels = c('A','T','G','C','N')}
-
-\item{gr}{GRanges object to define the ranges}
-
-\item{unlist}{logical whether to unlist the final output into a single DNAStringSet. Default TRUE}
-
-\item{mc.cores}{Optional multicore call. Default 1}
-
-\item{mc.chunks}{Optional define how to chunk the multicore call. Default mc.cores}
-
-\item{as.data.table}{Optional}
 
 \item{verbose}{Increase verbosity}
 }
 \value{
 DNAStringSet of sequences
-
-DNAStringSet of sequences
 }
 \description{
-Retrieve genomic sequenes
-
-Wrapper around getSeq which does the "chr" and seqnames conversion if necessary
-also handles GRangesList queries
-
 Retrieve genomic sequenes
 
 Wrapper around getSeq which does the "chr" and seqnames conversion if necessary

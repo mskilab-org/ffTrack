@@ -909,11 +909,11 @@ ffTrack = function(gr, file.name, default.val = NA, overwrite = FALSE, levels = 
 #'
 #' @param hg A BSgenome or and ffTrack object with levels = c('A','T','G','C','N')
 #' @param gr GRanges object to define the ranges
-#' @param unlist logical whether to unlist the final output into a single DNAStringSet. Default TRUE
-#' @param mc.cores Optional multicore call. Default 1
-#' @param mc.chunks Optional define how to chunk the multicore call. Default mc.cores
-#' @param as.data.table boolean
-#' @param verbose Increase verbosity
+#' @param unlist logical whether to unlist the final output into a single DNAStringSet. (default = TRUE)
+#' @param mc.cores Optional multicore call. (default = 1)
+#' @param mc.chunks Optional define how to chunk the multicore call. (default = mc.cores)
+#' @param as.data.table boolean (default = FALSE)
+#' @param verbose boolean Flag to increase verbosity (default = FALSE)
 #' @return DNAStringSet of sequences
 #' @export
 get_seq = function(hg, gr, unlist = TRUE, mc.cores = 1, mc.chunks = mc.cores,
@@ -1565,12 +1565,12 @@ fftab = function(ff, intervals, signatures = NULL, FUN = sum, grep = FALSE, mc.c
     }
 
     if (length(intervals)==0){
-        stop('Error: Must provide non empty interavl input as GRanges')
+        stop('Error: Must provide non-empty interval input as GRanges for argument "interval"')
     }
 
     if (!is.null(signatures)){
         if (!is.list(signatures)){
-            stop('Error: Signatures must be a named list of arbitrary length character or length 1 or 2 numeric vectors')
+            stop('Error: Argument "signatures" must be a named list of arbitrary length character or length 1 or 2 numeric vectors')
         }
 
         if (is.null(names(signatures))){

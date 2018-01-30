@@ -7,6 +7,7 @@ Description: ffTrack allows building of objects of large genomically-indexed bas
     resolution sequence or numeric data for quasi-random out of memory access.
     ffTrack objects are indexable using GRanges from GenomicRanges package.
     Underlying files are written as .ffData objects using the ff package.
+biocViews:
 Depends:
     R (>= 3.1.0),
     gUtils (>= 0.1),
@@ -23,7 +24,8 @@ Imports:
     BSgenome
 Suggests: 
     testthat,
-    BSgenome.Hsapiens.UCSC.hg19
+    BSgenome.Hsapiens.UCSC.hg19, 
+    covr
 License: GPL-2
 BugReports: http://github.com/mskilab/ffTrack/issues
 LazyData: true

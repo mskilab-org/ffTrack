@@ -236,58 +236,58 @@ test_that('get_seq', {
 
 ## fftab
 
-test_that('fftab', {
-
-    ## default
-    gr = GRanges('1:10000-20000')
-    gr2 = GRanges(1, IRanges(c(1,9), c(6,14)), strand=c('+','-'), seqinfo=Seqinfo("1", 25), field=c(1,2))
-    testff = ffTrack(gr, file.name = 'test.boolean.rds', overwrite = TRUE, vmode = 'boolean')  ## ffTrack object of vmode boolean of ffdata filename(s) /Users/ebiederstedt/ffTrack/test.boolean.ffdata comprising 0M of disk space and 1 GRanges: 
-    intergr = GRanges(1, IRanges(c(3,7,13), c(5,9,16)), strand=c('+','-','-'), seqinfo=Seqinfo("1", 25), name=c("A","B","C"))
-    foo1 = fftab(testff, intergr)
-    foo2 = fftab(testff, gr2)
-    expect_true(is(foo1, 'GRanges'))
-    expect_equal(length(foo1), 3)
-    expect_equal(foo1$name[3], 'C')
-    ## signature
-    foosig = fftab(testff, intergr, signatures=list(3, 9, 27))
-    expect_equal(length(foosig), 3)
-    expect_equal(unique(foosig$sig1), 0)
-    expect_equal(unique(foosig$sig2), 0)
-    expect_equal(unique(foosig$sig3), 0)
-    ## FUN
-    ## should write better error message
-    ## foo = fftab(testff, intergr, FUN=abs)  ## Error in FUN(dat, na.rm = na.rm) : 2 arguments passed to 'abs' which requires 1
-    func1 = fftab(testff, intergr, FUN=mean) 
-    func2 = fftab(testff, intergr, FUN=rep) 
-    expect_equal(length(func1), 3)
-    expect_equal(unique(as.logical(func1$score)), NA)  ## nothing calculated; document this a bit more
-    expect_equal(length(func2), 3)
-    expect_equal(unique(as.logical(func2$score)), NA)
-    ## grep 
-    ## mc.cores 
-    expect_equal(length(fftab(testff, intergr, mc.cores=2)), 3)
-    expect_equal(unique(fftab(testff, intergr, mc.cores=2)$score), 0)
-    ## chunksize 
-    expect_equal(length(fftab(testff, intergr, chunksize=2)), 3)
-    expect_equal(unique(fftab(testff, intergr, chunksize=2)$score), 0)
-    ## verbose 
-    fftab(testff, intergr, verbose=FALSE)
-    expect_equal(length(fftab(testff, intergr, verbose=FALSE)), 3)
-    expect_equal(unique(fftab(testff, intergr, verbose=FALSE)$score), 0)
-    ## na.rm 
-    footrue = fftab(testff, intergr, na.rm=TRUE)
-    foofalse = fftab(testff, intergr, na.rm=FALSE)
-    expect_equal(unique(footrue$score), 0)
-    expect_equal(unique(as.logical(foofalse$score)), NA)
-    ## errors
-    ## if (!is(ff, 'ffTrack') & !is(ff, 'RleList')){
-    expect_error(fftab(GRanges(), intergr))  ## Error in fftab(GRanges(), intergr) : Error: Input ff should be ffTrack or RleList
-    ##  if (length(intervals)==0){
-    expect_error(fftab(testff, GRanges())) 
-    ##  if (!is.list(signatures)){
-    expect_error(fftab(testff, intergr, signatures=matrix())) ##  Error: Signatures must be a named list of arbitrary length character or length 1 or 2 numeric vectors
-
-})
+## test_that('fftab', {
+## 
+##     ## default
+##     gr = GRanges('1:10000-20000')
+##     gr2 = GRanges(1, IRanges(c(1,9), c(6,14)), strand=c('+','-'), seqinfo=Seqinfo("1", 25), field=c(1,2))
+##     testff = ffTrack(gr, file.name = 'test.boolean.rds', overwrite = TRUE, vmode = 'boolean')  ## ffTrack object of vmode boolean of ffdata filename(s) /Users/ebiederstedt/ffTrack/test.boolean.ffdata comprising 0M of disk space and 1 GRanges: 
+##    intergr = GRanges(1, IRanges(c(3,7,13), c(5,9,16)), strand=c('+','-','-'), seqinfo=Seqinfo("1", 25), name=c("A","B","C"))
+##    foo1 = fftab(testff, intergr)
+##    foo2 = fftab(testff, gr2)
+##    expect_true(is(foo1, 'GRanges'))
+##    expect_equal(length(foo1), 3)
+##    expect_equal(foo1$name[3], 'C')
+##    ## signature
+##    foosig = fftab(testff, intergr, signatures=list(3, 9, 27))
+##    expect_equal(length(foosig), 3)
+##    expect_equal(unique(foosig$sig1), 0)
+##    expect_equal(unique(foosig$sig2), 0)
+##    expect_equal(unique(foosig$sig3), 0)
+##    ## FUN
+##    ## should write better error message
+##    ## foo = fftab(testff, intergr, FUN=abs)  ## Error in FUN(dat, na.rm = na.rm) : 2 arguments passed to 'abs' which requires 1
+##    func1 = fftab(testff, intergr, FUN=mean) 
+##    func2 = fftab(testff, intergr, FUN=rep) 
+##    expect_equal(length(func1), 3)
+##    expect_equal(unique(as.logical(func1$score)), NA)  ## nothing calculated; document this a bit more
+##    expect_equal(length(func2), 3)
+##    expect_equal(unique(as.logical(func2$score)), NA)
+##    ## grep 
+##    ## mc.cores 
+##    expect_equal(length(fftab(testff, intergr, mc.cores=2)), 3)
+##    expect_equal(unique(fftab(testff, intergr, mc.cores=2)$score), 0)
+##    ## chunksize 
+##    expect_equal(length(fftab(testff, intergr, chunksize=2)), 3)
+##    expect_equal(unique(fftab(testff, intergr, chunksize=2)$score), 0)
+##    ## verbose 
+##    fftab(testff, intergr, verbose=FALSE)
+##    expect_equal(length(fftab(testff, intergr, verbose=FALSE)), 3)
+##    expect_equal(unique(fftab(testff, intergr, verbose=FALSE)$score), 0)
+##    ## na.rm 
+##    footrue = fftab(testff, intergr, na.rm=TRUE)
+##    foofalse = fftab(testff, intergr, na.rm=FALSE)
+##    expect_equal(unique(footrue$score), 0)
+##    expect_equal(unique(as.logical(foofalse$score)), NA)
+##    ## errors
+##    ## if (!is(ff, 'ffTrack') & !is(ff, 'RleList')){
+##    expect_error(fftab(GRanges(), intergr))  ## Error in fftab(GRanges(), intergr) : Error: Input ff should be ffTrack or RleList
+##    ##  if (length(intervals)==0){
+##    expect_error(fftab(testff, GRanges())) 
+##    ##  if (!is.list(signatures)){
+##    expect_error(fftab(testff, intergr, signatures=matrix())) ##  Error: Signatures must be a named list of arbitrary length character or length 1 or 2 numeric vectors
+##
+##})
 
 
 

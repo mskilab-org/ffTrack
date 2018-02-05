@@ -12,15 +12,15 @@ get_seq(hg, gr, unlist = TRUE, mc.cores = 1, mc.chunks = mc.cores,
 
 \item{gr}{GRanges object to define the ranges}
 
-\item{unlist}{logical whether to unlist the final output into a single DNAStringSet. Default TRUE}
+\item{unlist}{logical whether to unlist the final output into a single DNAStringSet. (default = TRUE)}
 
-\item{mc.cores}{Optional multicore call. Default 1}
+\item{mc.cores}{Optional multicore call. (default = 1)}
 
-\item{mc.chunks}{Optional define how to chunk the multicore call. Default mc.cores}
+\item{mc.chunks}{Optional define how to chunk the multicore call. (default = mc.cores)}
 
-\item{as.data.table}{boolean}
+\item{as.data.table}{boolean (default = FALSE)}
 
-\item{verbose}{Increase verbosity}
+\item{verbose}{boolean Flag to increase verbosity (default = FALSE)}
 }
 \value{
 DNAStringSet of sequences

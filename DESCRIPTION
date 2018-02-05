@@ -11,9 +11,9 @@ biocViews:
 Depends:
     R (>= 3.1.0),
     gUtils (>= 0.1),
-    ff (>= 2.2)
+    ff (>= 2.2), 
+    rtracklayer (>= 1.32)
 Imports:
-    rtracklayer (>= 1.25),
     data.table,
     Biostrings,
     parallel,

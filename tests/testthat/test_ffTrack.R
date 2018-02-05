@@ -9,13 +9,13 @@ context('ffTrack operations')
 
 
 ### ffTrack
-### --- initalize
-### --- show
-### --- size
-### --- vmode
-### --- len
-### --- levels
-### --- set_levels
+### --- initalize    XX
+### --- show         XX  
+### --- size         XX
+### --- vmode        XX
+### --- len          XX
+### --- levels       XX
+### --- set_levels   
 ### --- ranges
 ### --- filename
 ### --- cp
@@ -74,7 +74,7 @@ test_that('ffTrack', {
     ## test ffTrack methods
     testff = ffTrack(gr, file.name = 'test.boolean.rds', overwrite = TRUE, vmode = 'boolean')
     ## show
-    ## 
+    expect_equal(basename(show(testff)), 'test.boolean.ffdata')
     ## size
     expect_equal(size(testff), 0.001252)
     ## vmode 
@@ -82,6 +82,7 @@ test_that('ffTrack', {
     ## len
     expect_equal(len(testff), 10001)
     ## levels
+    expect_equal(levels(testff), NA)
     ## set_levels
     expect_error(set_levels(testff))
     ## ranges
@@ -89,13 +90,14 @@ test_that('ffTrack', {
     expect_equal(width(ranges(testff)), 10001)
     expect_equal(ranges(testff)$ix.s, 1)
     ## filename
-    ####### expect_match(as.character(filename(testff)[1]), '/home/travis/build/mskilab/ffTrack/ffTrack.Rcheck/tests/testthat/test.boolean.ffdata')
-    ####### expect_match(as.character(filename(testff)[2]), '/home/travis/build/mskilab/ffTrack/ffTrack.Rcheck/tests/testthat/test.boolean.rds')
+    expect_equal(basename(filename(testff)[1]), 'test.boolean.ffdata')
+    expect_equal(basename(filename(testff)[2]), 'test.boolean.rds')    
     ## cp 
     expect_error(cp(testff))
     ####### expect_error(cp(testff, '/home/travis/build/mskilab/ffTrack/ffTrack.Rcheck/tests/'), NA)  ## check function works without error
     ####### expect_true(file.exists('/home/travis/build/mskilab/ffTrack/ffTrack.Rcheck/tests/test.boolean.ffdata'))
     ####### expect_true(file.exists('/home/travis/build/mskilab/ffTrack/ffTrack.Rcheck/tests/test.boolean.rds'))
+    ## errors!
     ## seqlengths
     ## seqinfo
     ## seqlevels
@@ -155,6 +157,9 @@ test_that('get_seq', {
     expect_equal(substr(as.character(get_seq(hg19, gr, mc.chunks=2)[[1]]), 1, 10), 'NTAACCCTAA')   
     ## verbose
     expect_equal(substr(as.character(get_seq(hg19, gr, verbose=TRUE)[[1]]), 1, 10), 'NTAACCCTAA')
+    ##  if (inherits(gr, 'GRangesList')){
+    expect_equal(as.character(get_seq(hg19, grl2, verbose=TRUE)[[1]]), 'TA')
+    ##  if (is(hg, 'ffTrack')){
 
 })
 

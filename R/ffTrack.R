@@ -210,7 +210,9 @@ setMethod('show', 'ffTrack', function(object){
     }
     
     cat(sprintf('ffTrack object of vmode %s of ffdata filename(s) %s comprising %sM of disk space and %s GRanges: \n', vmode(object), fn, round(size(object), 2), length(object@.gr)))
+    return(fn)
 })
+
 
 
 
@@ -477,98 +479,6 @@ setMethod('writeable_status', 'ffTrack', function(.Object, value)
 })
 
 
-
-
-#' @name [
-#' @title [
-#' @description
-#'
-#' Takes as input either GRanges or GRangesList "i", and returns a vector or vector list (respectively) of
-#' data from the corresponding ranges.
-#'
-#' Strand is taken into account here - i.e. a negative range will yield reversed data (note: not reverse complement)
-#'
-#' @param x param info
-#' @param i GRanges or GRangesList
-#' @param gr logical flag whether to return GRanges with field $Score populated with values (=FALSE); if T will return GRanges with field $score populated w values
-#' @param raw logical flag whether to convert raw data to levels (if levels exist) (=FALSE); if T will not convert raw data to levels (if levels exist)
-#' @return either vector (if i is a GRanges) or vector list (if i is a GRangesList)
-#' @export
-#' @author Marcin Imielinski
-## setGeneric('[', function(x, i, gr, raw) standardGeneric('['))
-setMethod('[', 'ffTrack', function(x, i, gr = FALSE, raw = FALSE)
-{
-    if (inherits(i, 'GRangesList')){
-        query = grl.unlist(i)
-    }
-    else if (inherits(i, 'GRanges')){
-        query = i
-    }
-    else{
-        stop('Error: ffTrack accessor index must be a GRanges or GRangesList')
-    }
-
-    out = rep(NA, sum(as.numeric(width(query))))
-
-    ov = gr.findoverlaps(query, x@.gr)
-
-    if (length(ov) > 0){
-
-        q.ix.s = c(1, 1 + cumsum(width(query))[-length(query)])
-        q.ix1 = start(ov) - start(query)[ov$query.id] + q.ix.s[ov$query.id]
-        q.ix2 = end(ov) - start(query)[ov$query.id] + q.ix.s[ov$query.id]
-
-        s.ix1 = start(ov) - start(x@.gr)[ov$subject.id] + x@.gr$ix.s[ov$subject.id]
-        s.ix2 = end(ov) - start(x@.gr)[ov$subject.id] + x@.gr$ix.s[ov$subject.id]
-
-        q.ix = do.call('c', lapply(1:length(q.ix1), function(j) q.ix1[j]:q.ix2[j]))
-        s.ix = do.call('c', lapply(1:length(s.ix1), function(j) s.ix1[j]:s.ix2[j]))
-
-        aux.ix = s.ix > x@.blocksize
-
-        out[q.ix[!aux.ix]] = x@.ff[s.ix[!aux.ix]]
-
-        if (any(aux.ix)){
-            aux.chunk = floor(s.ix[aux.ix] / x@.blocksize)
-
-            for (j in unique(aux.chunk)){
-                tmp.ix = which(aux.chunk == j)
-                out[q.ix[aux.ix][tmp.ix]] = x@.ffaux[[j]][s.ix[aux.ix][tmp.ix]-j*x@.blocksize]
-            }
-        }
-
-        if (!raw & !all(is.na(x@.levels))){
-            out = as.integer(out)
-            out[out==0] = NA ## 0 = NA for types where NA is cast to 0 (e.g. ubyte)
-            out = x@.levels[out]
-        }
-
-        ## reverse data for negative strand queries
-        if (any(ix = as.logical(strand(query)=='-'))){
-            w = width(query)
-            q.id = unlist(lapply(1:length(query), function(x) rep(x, w[x])))
-            q.l = split(1:length(out), q.id)
-
-            for (j in q.l[ix]){
-                out[j] = rev(out[j])
-            }
-        }
-
-        if (gr){
-            tmp.out = gr.dice(i[, c()])
-            tmp.out$score = out
-            tmp.out = tmp.out[!is.na(tmp.out$score)]
-            out = tmp.out
-        }
-    }
-
-    if (inherits(i, 'GRangesList')){
-        out = split(out, rep(query$grl.ix, width(query)))
-    }
-
-    return(out)
-
-})
 
 
 
@@ -1093,89 +1003,85 @@ get_seq = function(hg, gr, unlist = TRUE, mc.cores = 1, mc.chunks = mc.cores,
 #' @return ffTrack object corresponding to the data in the BigWig file
 #' @export
 #' @author Marcin Imielinski
-bw2fft = function(bwpath, fftpath = gsub('(\\.bw.*)|(\\.bigwig.*)', '.rds', bwpath), region = NULL, chrsub = TRUE, 
-    verbose = FALSE, buffer = 1e5, skip.sweep = FALSE, vmode = 'double', resume = FALSE,  min.gapwidth = 1e3)
-{
+bw2fft = function(bwpath,
+  fftpath = gsub('(\\.bw.*)|(\\.bigwig.*)', '.rds', bwpath),
+  region = NULL, # whether to limit to certain region (instead of whole genome)
+  chrsub = TRUE, ## whether to sub in / sub out 'chr' when accessing bigwig file
+#  mc.cores = 1, ## currently mc.cores can only be one (weird mclapply bug when running)
+  verbose = FALSE,
+  buffer = 1e5, # number of bases to access at a time
+  skip.sweep = FALSE, # if TRUE will not sweep for covered region, just make a whole genome file or a file across provided regions
+  vmode = 'boolean',
+  resume = FALSE,  ## in case something went wrong can update an existing file
+  min.gapwidth = 1e3 ## flank (to reduce the range complexity of the ffdata skeleton, but increase file size)
+  )
+  {
+    mc.cores = 100;
 
-    mc.cores = 1;
+    if (!is.null(region))
+      if (chrsub)
+        region = gr.fix(gr.chr(region), seqinfo(import(BigWigFile(normalizePath(bwpath)))), drop = TRUE)
 
-    if (!is.null(region)){
-        if (chrsub){
-            region = gr.fix(gr.chr(region), seqinfo(BigWigFile(normalizePath(bwpath))), drop = TRUE)
-        }
-    }
+    if (!skip.sweep)
+      {
+        if (!is.null(region))
+          tiles = gr.tile(region, buffer)
+        else
+          granges = import(BigWigFile(normalizePath(bwpath)));
+ 
 
-    if (!skip.sweep){
-        if (!is.null(region)){
-            tiles = gr.tile(region, buffer)
-        }
-        else{
-            tiles = gr.tile(si2gr(seqinfo(BigWigFile(normalizePath(bwpath)))), buffer)
-        }
+        if (verbose)
+          cat(sprintf('\nInput path %s, Output path %s, Buffer %s, min.gapwidth %s', bwpath, fftpath, buffer, min.gapwidth))
 
-        if (verbose){
-            cat(sprintf('\nInput path %s, Output path %s, Buffer %s, min.gapwidth %s', bwpath, fftpath, buffer, min.gapwidth))
-        }
+        tiles = gr.tile(si2gr(seqinfo(granges)), buffer)
 
-        if (verbose){
-            cat(sprintf('\nSweeping BigWig file for covered positions across %s tiles covering %s bases with buffer size %s \n', length(tiles), sum(as.numeric(width(tiles))), buffer))
-        }
+        if (verbose)
+          cat(sprintf('\nSweeping BigWig file for covered positions across %s tiles covering %s bases with buffer size %s \n', length(tiles), sum(as.numeric(width(tiles))), buffer))
 
         ## first sweep file to find all "covered" ranges (in order to make skeleton ffTrack object)
-        covered = reduce(do.call('c', mclapply(1:length(tiles), function(x){
-            if (verbose){
+        covered = reduce(do.call('c', parallel::mclapply(1:length(tiles), function(x)
+          {
+            if (verbose)
               cat(x, ' ')
-            }
-            reduce(import.ucsc(bwpath, selection = tiles[x], chrsub = FALSE), min.gapwidth = min.gapwidth)
-        }, mc.cores = mc.cores)), min.gapwidth = min.gapwidth)
-    }
-    else if (!is.null(region)){
-        covered = region
-    }
+            reduce(import.bw(bwpath, selection = tiles[x], chrsub = FALSE), min.gapwidth = min.gapwidth)
+          }, mc.cores = mc.cores)), min.gapwidth = min.gapwidth)
+      }
+    else if (!is.null(region))
+      covered = region
+    else ## assume entire seqinfo is covered
+      covered = si2gr(seqinfo(granges))
 
-    ## assume entire seqinfo is covered
-    else{
-        covered = si2gr(seqinfo(BigWigFile(normalizePath(bwpath))))
-    } 
-    
-    if (chrsub){
-        covered = gr.sub(covered, 'chr', '')
-    }
+    if (chrsub)
+      covered = gr.sub(covered, 'chr', '')
 
-    if (resume){
-        fft = readRDS(fftpath)
-    }
-    else{
-        fft = ffTrack(covered, fftpath)
-    }
+    if (resume)
+      fft = readRDS(fftpath)
+    else
+      fft = ffTrack(covered, fftpath)
 
-    if (verbose){
-        cat(sprintf('\t.ffdata file %s has size %sM\n', filename(fft)['ff'], round(file.info(filename(fft)['ff'])$size/1e6, 2)))
-    }
+    if (verbose)
+      cat(sprintf('\t.ffdata file %s has size %sM\n', ff::filename(fft)['ff'], round(file.info(ff::filename(fft)['ff'])$size/1e6, 2)))
 
     covered.tile = gr.tile(covered, buffer)
 
-    if (verbose){
-        cat(sprintf('\nPopulating ffTrack at %s tiles covering %s bases with buffer size %s \n', length(covered.tile), sum(as.numeric(width(covered.tile))), buffer))
-    }
+    if (verbose)
+      cat(sprintf('\nPopulating ffTrack at %s tiles covering %s bases with buffer size %s \n', length(covered.tile), sum(as.numeric(width(covered.tile))), buffer))
 
-    mclapply(1:length(covered.tile), function(x){
-        if (verbose){
-            cat(x, ' ')
-        }
-        tmp = import.ucsc(bwpath, selection = covered.tile[x], chrsub = chrsub)
-        fft[tmp] = tmp$score
-        gc()
-    }, mc.cores = mc.cores)
+    parallel::mclapply(1:length(covered.tile), function(x)
+             {
+               if (verbose)
+                 cat(x, ' ')
+               tmp = import.bw(bwpath, selection = covered.tile[x], chrsub = chrsub)
+               fft[tmp] = tmp$score
+               gc()
+             }, mc.cores = mc.cores)
 
-    if (verbose){
-        cat('\n')
-    }
+
+    if (verbose)
+      cat('\n')
 
     return(fft)
-
-}
-
+  }
 
 
 
@@ -1311,7 +1217,7 @@ wig2fft = function(wigpath, fftpath = gsub('(\\.wig.*)', '.rds', wigpath), chrsu
         fft = ffTrack(reduce(gr.fix(seg2gr(tab, seqlengths = NULL), seqlengths), min.gapwidth = min.gapwidth), fftpath, vmode = vmode)
 
         if (verbose){
-            cat(sprintf('\t.ffdata file %s has size %sM\n', filename(fft)['ff'], round(size(fft))))
+            cat(sprintf('\t.ffdata file %s has size %sM\n', ff::filename(fft)['ff'], round(size(fft))))
         }
 
         ## now populate fft
@@ -1455,7 +1361,7 @@ seq2fft = function(seq, nnuc = 0, dict = NULL, chrsub = TRUE, neg = FALSE, regio
     if (is(fftpath, 'ffTrack')){
       
         if (verbose){
-            cat(sprintf('Populating ffTrack with filename %s with %s MB of sequence\n', filename(fftpath)['rds'], round(sum(as.numeric(width(region)))/1e6, 2)))
+            cat(sprintf('Populating ffTrack with filename %s with %s MB of sequence\n', ff::filename(fftpath)['rds'], round(sum(as.numeric(width(region)))/1e6, 2)))
         }
 
         fft = fftpath ## append to existing fftpath
@@ -1471,7 +1377,7 @@ seq2fft = function(seq, nnuc = 0, dict = NULL, chrsub = TRUE, neg = FALSE, regio
     }
 
     if (verbose){
-        cat(sprintf('\t.ffdata file %s has size %sM\n', filename(fft)['ff'], round(size(fft))))
+        cat(sprintf('\t.ffdata file %s has size %sM\n', ff::filename(fft)['ff'], round(size(fft))))
     }
 
     print(tiles)
@@ -1730,8 +1636,5 @@ match.bs = function(query, dict, midpoint = FALSE)
 
     return(out)
 }
-
-
-
 
 

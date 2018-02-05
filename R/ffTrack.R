@@ -1033,7 +1033,7 @@ bw2fft = function(bwpath,
         if (verbose)
           cat(sprintf('\nInput path %s, Output path %s, Buffer %s, min.gapwidth %s', bwpath, fftpath, buffer, min.gapwidth))
 
-        tiles = gr.tile(si2gr(GenomeInfoDb::seqinfo(granges)), buffer)
+        tiles = gr.tile(si2gr(GenomicRanges::seqinfo(granges)), buffer)
 
         if (verbose)
           cat(sprintf('\nSweeping BigWig file for covered positions across %s tiles covering %s bases with buffer size %s \n', length(tiles), sum(as.numeric(width(tiles))), buffer))
@@ -1049,7 +1049,7 @@ bw2fft = function(bwpath,
     else if (!is.null(region))
       covered = region
     else ## assume entire seqinfo is covered
-      covered = si2gr(GenomeInfoDb::seqinfo(granges))
+      covered = si2gr(GenomicRanges::seqinfo(granges))
 
     if (chrsub)
       covered = gr.sub(covered, 'chr', '')

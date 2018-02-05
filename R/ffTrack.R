@@ -1011,7 +1011,7 @@ bw2fft = function(bwpath,
   verbose = FALSE,
   buffer = 1e5, # number of bases to access at a time
   skip.sweep = FALSE, # if TRUE will not sweep for covered region, just make a whole genome file or a file across provided regions
-  vmode = 'boolean',
+  vmode = 'double',
   resume = FALSE,  ## in case something went wrong can update an existing file
   min.gapwidth = 1e3 ## flank (to reduce the range complexity of the ffdata skeleton, but increase file size)
   )

@@ -6,7 +6,7 @@
 \usage{
 bw2fft(bwpath, fftpath = gsub("(\\\\.bw.*)|(\\\\.bigwig.*)", ".rds", bwpath),
   region = NULL, chrsub = TRUE, verbose = FALSE, buffer = 1e+05,
-  skip.sweep = FALSE, vmode = "boolean", resume = FALSE,
+  skip.sweep = FALSE, vmode = "double", resume = FALSE,
   min.gapwidth = 1000)
 }
 \arguments{

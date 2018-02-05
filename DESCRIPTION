@@ -11,16 +11,16 @@ biocViews:
 Depends:
     R (>= 3.1.0),
     gUtils (>= 0.1),
-    ff (>= 2.2), 
-    rtracklayer (>= 1.32)
+    ff (>= 2.2)
 Imports:
+    rtracklayer (>= 1.32),
     data.table,
     Biostrings,
     parallel,
     methods,
     GenomeInfoDb,
     S4Vectors,
-    GenomicRanges (>= 1.18), 
+    GenomicRanges (>= 1.30), 
     BSgenome
 Suggests: 
     testthat,

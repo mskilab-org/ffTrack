@@ -121,8 +121,7 @@ setMethod('initialize', 'ffTrack', function(.Object,
     ## as factors by providing a 'character' level
     if (!(vmode %in% c('character')) & !is.null(levels)){
         .Object@.levels = levels
-    }
-    else{
+    }else{
         .Object@.levels = NA
     }
 
@@ -155,8 +154,7 @@ setValidity('ffTrack', function(object){
 
     if (!file.exists(object@.ff.filename)){
         problems = c('ffdata file is missing')
-    }
-    else if (normalizePath(object@.ff.filename) != normalizePath(ff::filename(object@.ff))){
+    }else if (normalizePath(object@.ff.filename) != normalizePath(ff::filename(object@.ff))){
         problems = c('ffTrack filename does not match .ffdata filename')
     }
 
@@ -166,8 +164,7 @@ setValidity('ffTrack', function(object){
 
             if (!file.exists(ff::filename(object@.ffaux[[i]]))){
                 problems = c(problems, 'ffaux file is missing')
-            }
-            else if (normalizePath(paste(object@.ff.filename, '.', i, sep = '')) != normalizePath(ff::filename(object@.ffaux[[i]]))){
+            }else if (normalizePath(paste(object@.ff.filename, '.', i, sep = '')) != normalizePath(ff::filename(object@.ffaux[[i]]))){
                 problems = c(problems, 'ffaux object filename not compatible with .ff.filename')
             }
         }
@@ -309,8 +306,7 @@ setMethod('set_levels', 'ffTrack', function(object, value)
 
     if (is.vector(value) & length(value) == length(object@.levels)){
         object@.levels = value
-    }
-    else{
+    }else{
         stop('Error: Replacement levels must be a vector of same length as current set of levels')
     }
 
@@ -322,16 +318,16 @@ setMethod('set_levels', 'ffTrack', function(object, value)
 
 
 
-#' @name ranges
-#' @title ranges
+#' @name ffranges
+#' @title ffranges
 #' @description
 #'
-#' ranges underlying ffTrack object
+#' ffranges underlying ffTrack object
 #'
 #' @export
-#' @author Marcin Imielinski
-setGeneric('ranges', function(object) standardGeneric('ranges'))
-setMethod('ranges', 'ffTrack', function(object){
+#' @author Marcin Imielinski 
+setGeneric('ffranges', function(object) standardGeneric('ffranges'))  ## ffTrack::ranges(testff)
+setMethod('ffranges', 'ffTrack', function(object){
     object@.gr
 })
 
@@ -441,8 +437,7 @@ setMethod('del', 'ffTrack', function(.Object, path, overwrite = FALSE){
     if (any(file.exists(fdel))){
         i = sapply(fdel, function(x) system(sprintf('rm -f %s', x)))
         cat(sprintf('Removed files: %s\n', paste(fdel, collapse = ', ')))
-    }
-    else{
+    }else{
         cat('Object files already deleted')
     }
 })
@@ -468,8 +463,7 @@ setMethod('writeable_status', 'ffTrack', function(.Object, value)
         system(paste('chmod +w ', .Object@.ff.filename))
         close.ff(.Object@.ff)
         open.ff(.Object@.ff, readOnly = FALSE)
-    }
-    else{
+    }else{
         close.ff(.Object@.ff)
         open.ff(.Object@.ff, readOnly = TRUE)
     }
@@ -526,8 +520,7 @@ setMethod('mv', 'ffTrack', function(.Object, path, overwrite = FALSE, keep.origi
         if (file.info(path)$isdir){
             path = paste(path, .file.name(.Object@.rds.filename), sep = '/')
         }
-    }
-    else if (grepl("\\/$", path)){
+    }else if (grepl("\\/$", path)){
         stop('Error: directory does not exist, please create before moving / copying')
     }
 
@@ -641,13 +634,11 @@ setMethod('[<-', 'ffTrack', function(x, i, value, op = NULL, raw = TRUE, full = 
         if (length(value) != sum(width(i))){
             stop('Error: if full = TRUE then value must be of length = sum(width(ranges))')
         }
-    }
-    else if (is.list(value)){
+    }else if (is.list(value)){
         if (any(width(i) != sapply(value, length))){
            stop('Error: Mismatch between widths of input GRanges and value list')
         }
-    }
-    else{
+    }else{
         if (length(value) != length(i) & length(value) != 1){
             stop('Error: value must be list or vector of same length as GRanges input "i", or if full = TRUE a vector of same length as sum(width(granges))')
         }
@@ -661,8 +652,7 @@ setMethod('[<-', 'ffTrack', function(x, i, value, op = NULL, raw = TRUE, full = 
 
     if (is.list(value) | full){
         values = unlist(value)
-    }
-    else{
+    }else{
         values = rep(value, width(i))
     }
 
@@ -692,22 +682,17 @@ setMethod('[<-', 'ffTrack', function(x, i, value, op = NULL, raw = TRUE, full = 
         ## populate as factor if levels exist and raw = FALSE
         if (!(all(is.na(x@.levels))) & !raw){
             x@.ff[s.ix[!aux.ix]] = factor(values[q.ix[!aux.ix]], x@.levels)
-        } 
-        else{
+        } else{
             if (is.null(op)){
               x@.ff[s.ix[!aux.ix]] = values[q.ix[!aux.ix]]
-            }
-            else{
+            } else{
                 if (op == '+'){
                     x@.ff[s.ix[!aux.ix]] = x@.ff[s.ix[!aux.ix]] + values[q.ix[!aux.ix]]
-                }
-                else if (op == '-'){
+                } else if (op == '-'){
                     x@.ff[s.ix[!aux.ix]] = x@.ff[s.ix[!aux.ix]] - values[q.ix[!aux.ix]]
-                }
-                else if (op == '*'){
+                } else if (op == '*'){
                     x@.ff[s.ix[!aux.ix]] = x@.ff[s.ix[!aux.ix]] * values[q.ix[!aux.ix]]
-                }
-                else if (op == '/'){
+                } else if (op == '/'){
                     x@.ff[s.ix[!aux.ix]] = x@.ff[s.ix[!aux.ix]] / values[q.ix[!aux.ix]]
                 }
             }
@@ -722,16 +707,13 @@ setMethod('[<-', 'ffTrack', function(x, i, value, op = NULL, raw = TRUE, full = 
                 ## populate as factor if levels exist
                 if (!all(is.na(x@.levels)) & !raw){
                     x@.ffaux[[j]][s.ix[aux.ix][tmp.ix] - j*x@.blocksize] = factor(as.vector(values[q.ix[aux.ix][tmp.ix]]), x@.levels)
-                }
-                else{
+                } else{
                     if (is.null(op)){
                         x@.ffaux[[j]][s.ix[aux.ix][tmp.ix] - j*x@.blocksize] = as.vector(values[q.ix[aux.ix][tmp.ix]])
-                    }
-                    else{
+                    } else{
                         if (op == '+'){
                             x@.ffaux[[j]][s.ix[aux.ix][tmp.ix] - j*x@.blocksize] = x@.ffaux[[j]][s.ix[aux.ix][tmp.ix] - j*x@.blocksize] + as.vector(values[q.ix[aux.ix][tmp.ix]])
-                        }
-                        else if (op == '-'){
+                        } else if (op == '-'){
                             x@.ffaux[[j]][s.ix[aux.ix][tmp.ix] - j*x@.blocksize] = x@.ffaux[[j]][s.ix[aux.ix][tmp.ix] - j*x@.blocksize] - as.vector(values[q.ix[aux.ix][tmp.ix]])
                         }
                         else if (op == '*'){
@@ -931,8 +913,7 @@ get_seq = function(hg, gr, unlist = TRUE, mc.cores = 1, mc.chunks = mc.cores,
                         cat('\n')
                     }
                 }
-            }
-            else{
+            } else{
 
                 if (is(hg, 'ffTrack')){
 
@@ -947,8 +928,7 @@ get_seq = function(hg, gr, unlist = TRUE, mc.cores = 1, mc.chunks = mc.cores,
                     if (as.data.table) {
                         bst = data.table(seq=sapply(split(tmp, as.vector(Rle(1:length(gr), width(gr)))), function(x) paste(x, collapse='')))
                         bst[, names:=names(gr)]
-                    } 
-                    else {
+                    } else {
                         bst = DNAStringSet(sapply(split(tmp, as.numeric(Rle(1:length(gr), width(gr)))), function(x) paste(x, collapse = '')))
                         names(bst) = names(gr)
                     }
@@ -962,14 +942,12 @@ get_seq = function(hg, gr, unlist = TRUE, mc.cores = 1, mc.chunks = mc.cores,
                         bstc[ix] = as.character(Biostrings::complement(bst[ix]))
                         bst = Biostrings::DNAStringSet(bstc)  ## BIZARRE bug with line below
                         #bst[ix] = Biostrings::complement(bst[ix])
-                    } 
-                    else {
+                    } else {
                         bst$seq[ix] = as.character(Biostrings::complement(DNAStringSet(bst$seq[ix])))
                     }
 
                     return(bst)
-                }
-                else{
+                } else{
                     out = getSeq(hg, gr)
                 }
             }
@@ -1112,12 +1090,10 @@ wig2fft = function(wigpath, fftpath = gsub('(\\.wig.*)', '.rds', wigpath), chrsu
     if (gz){
         grepstr = sprintf('gunzip -c %s | grep -nP "\\S+Step" ', wigpath)
         wcstr = sprintf('gunzip -c %s | wc -l', wigpath)
-    }
-    else if (bz2){
+    } else if (bz2){
         grepstr = sprintf('bunzip2 -c %s | grep -nP "\\S+Step" ', wigpath)
         wcstr = sprintf('gunzip -c %s | wc -l', wigpath)
-    }
-    else{
+    } else{
         grepstr = sprintf('grep -nP "\\S+Step" %s', wigpath)
         wcstr = sprintf('wc -l %s', wigpath)
     }
@@ -1166,8 +1142,7 @@ wig2fft = function(wigpath, fftpath = gsub('(\\.wig.*)', '.rds', wigpath), chrsu
                 step = 1,
                 span = 1, 
                 stringsAsFactors = FALSE)
-        }
-        else if (ncol == 5){
+        } else if (ncol == 5){
 
             tmp = tryCatch(matrix(unlist(strsplit(steps, '(\\:)|( )')), ncol = 5, byrow = TRUE, dimnames = list(c(), col.names)), error = function(x) NULL)
 
@@ -1181,8 +1156,7 @@ wig2fft = function(wigpath, fftpath = gsub('(\\.wig.*)', '.rds', wigpath), chrsu
                 step = as.numeric(gsub('step\\=', '', tmp[, 'step'])),
                 span = 1, 
                 stringsAsFactors = FALSE)
-            }
-        else if (ncol == 6){
+        } else if (ncol == 6){
 
             tmp = tryCatch(matrix(unlist(strsplit(steps, '(\\:)|( )')), ncol = 5, byrow = TRUE, dimnames = list(c(), col.names)), error = function(x) NULL)
 
@@ -1196,8 +1170,7 @@ wig2fft = function(wigpath, fftpath = gsub('(\\.wig.*)', '.rds', wigpath), chrsu
                 step = as.numeric(gsub('step\\=', '', tmp[, 'step'])),
                 span = as.numeric(gsub('span\\=', '', tmp[, 'span'])),
                 stringsAsFactors = FALSE)
-        }
-        else{
+        } else{
             stop('Error: WIG file corrupt')
         }
 
@@ -1249,8 +1222,7 @@ wig2fft = function(wigpath, fftpath = gsub('(\\.wig.*)', '.rds', wigpath), chrsu
                 tmp.ix = unlist(mapply(function(s, e) s:e, tmp.st, tmp.st + sp[i] - 1))
                 tmp2[tmp.ix] = tmp
                 tmp = tmp2
-            }
-            else if (sp[i]>1){
+            } else if (sp[i]>1){
                 tmp = rep(tmp, each = sp[i])
             }
 
@@ -1351,8 +1323,7 @@ seq2fft = function(seq, nnuc = 0, dict = NULL, chrsub = TRUE, neg = FALSE, regio
         DNA_BASES = c('A', 'G', 'C', 'T', 'N')
         dict = Biostrings::DNAStringSet(Biostrings::mkAllStrings(DNA_BASES, nnuc*2 + 1))
         context = TRUE
-    }
-    else{
+    } else{
         if (!is(dict, 'character'))
           dict = Biostrings::DNAStringSet(dict)
     }
@@ -1365,8 +1336,7 @@ seq2fft = function(seq, nnuc = 0, dict = NULL, chrsub = TRUE, neg = FALSE, regio
         }
 
         fft = fftpath ## append to existing fftpath
-    }
-    else{
+    } else{
 
         if (verbose){
             cat(sprintf('Making ffTrack for genome %s spanning %s MB of sequence\n', attributes(seq)$seqs_pkgname, round(sum(as.numeric(width(region)))/1e6, 2)))
@@ -1498,8 +1468,7 @@ fftab = function(ff, intervals, signatures = NULL, FUN = sum, grep = FALSE, mc.c
         if (!all(check)){
             stop('Error: signatures input is malformed, should be either length 1 or 2 numeric, length 1 character (if grep = TRUE), or atbitrary length character otherwise)')
         }
-    }
-    else{
+    } else{
         signatures = list(score = numeric()) ## we are just scoring bases
     }
 
@@ -1511,21 +1480,17 @@ fftab = function(ff, intervals, signatures = NULL, FUN = sum, grep = FALSE, mc.c
 
             if (length(sig)==0){
                 cmd = sprintf('%s = FUN(dat, na.rm = na.rm)', x)
-            }
-            else if (length(sig)==1){
+            } else if (length(sig)==1){
                 cmd = sprintf('%s = FUN(dat == %s, na.rm = na.rm)', x, sig[1])
-            }
-            else{
+            } else{
                 cmd = sprintf('%s = FUN(dat > %s & dat< %s, na.rm = na.rm)', x, sig[1], sig[2])
             }
 
-        }
-        else{
+        } else{
 
             if (grep){
                 cmd = sprintf('%s = FUN(grepl("%s", dat), na.rm = na.rm) ', x, sig[1])
-            }
-            else{
+            } else{
                 cmd = paste(x, '= FUN(dat %in%', paste('c(', paste("\"", sig, "\"", sep = '', collapse = ','), '), na.rm = na.rm)', sep = ''))
             }
         }
@@ -1564,9 +1529,8 @@ fftab = function(ff, intervals, signatures = NULL, FUN = sum, grep = FALSE, mc.c
 
         if (is(ff, 'ffTrack')){
             tmp = data.table(dat = ff[chunk], id = rep(1:length(chunk), width(chunk)) )
-        }
-        ## also can handle rle data
-        else{
+        } else{
+            ## also can handle rle data
             tmp = data.table(dat = as.numeric(rle.query(ff, chunk)), id = rep(1:length(chunk), width(chunk)) )
         }
 
@@ -1629,8 +1593,7 @@ match.bs = function(query, dict, midpoint = FALSE)
 
     if (!midpoint){
       out[start(tmp)] = as.numeric(names(tmp))
-    }
-    else{
+    } else{
       out[floor((start(tmp)+end(tmp))/2)] = as.numeric(names(tmp))
     }
 

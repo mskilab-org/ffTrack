@@ -16,7 +16,7 @@ context('ffTrack operations')
 ### --- len          XX
 ### --- levels       XX
 ### --- set_levels   
-### --- ranges
+### --- ffranges
 ### --- filename
 ### --- cp
 ### --- ffseqlengths
@@ -85,10 +85,10 @@ test_that('ffTrack', {
     expect_equal(levels(testff), NA)
     ## set_levels
     expect_error(set_levels(testff))
-    ## ranges
-    ###expect_true(is(ranges(testff), 'GRanges'))
-    ##expect_equal(width(ranges(testff)), 10001)
-    ##expect_equal(ranges(testff)$ix.s, 1)
+    ## ffranges
+    expect_true(is(ffranges(testff), 'GRanges'))
+    expect_equal(width(ffranges(testff)), 10001)
+    expect_equal(ffranges(testff)$ix.s, 1)
     ## filename
     expect_equal(basename(filename(testff)[1]), 'test.boolean.ffdata')
     expect_equal(basename(filename(testff)[2]), 'test.boolean.rds')    
@@ -242,8 +242,8 @@ test_that('get_seq', {
 ##     gr = GRanges('1:10000-20000')
 ##     gr2 = GRanges(1, IRanges(c(1,9), c(6,14)), strand=c('+','-'), seqinfo=Seqinfo("1", 25), field=c(1,2))
 ##     testff = ffTrack(gr, file.name = 'test.boolean.rds', overwrite = TRUE, vmode = 'boolean')  ## ffTrack object of vmode boolean of ffdata filename(s) /Users/ebiederstedt/ffTrack/test.boolean.ffdata comprising 0M of disk space and 1 GRanges: 
-##    intergr = GRanges(1, IRanges(c(3,7,13), c(5,9,16)), strand=c('+','-','-'), seqinfo=Seqinfo("1", 25), name=c("A","B","C"))
-##    foo1 = fftab(testff, intergr)
+##    integer = GRanges(1, IRanges(c(3,7,13), c(5,9,16)), strand=c('+','-','-'), seqinfo=Seqinfo("1", 25), name=c("A","B","C"))
+##    foo1 = fftab(testff, integer)
 ##    foo2 = fftab(testff, gr2)
 ##    expect_true(is(foo1, 'GRanges'))
 ##    expect_equal(length(foo1), 3)

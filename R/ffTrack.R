@@ -384,8 +384,8 @@ setMethod('ffseqlengths', 'ffTrack', function(object){
 
 
 
-#' @name seqinfo
-#' @title seqinfo
+#' @name ffseqinfo
+#' @title ffseqinfo
 #' @description
 #'
 #' seqinfo of ffTrack object
@@ -393,16 +393,16 @@ setMethod('ffseqlengths', 'ffTrack', function(object){
 #' @export
 #' @importFrom GenomeInfoDb seqlengths seqinfo seqlevels
 #' @author Marcin Imielinski
-setGeneric('seqinfo', function(object) standardGeneric('seqinfo'))
-setMethod('seqinfo', 'ffTrack', function(object){
+setGeneric('ffseqinfo', function(object) standardGeneric('ffseqinfo'))
+setMethod('ffseqinfo', 'ffTrack', function(object){
     seqinfo(object@.gr)
 })
 
 
 
 
-#' @name seqlevels
-#' @title seqlevels of ffTrack object
+#' @name ffseqlevels
+#' @title ffseqlevels of ffTrack object
 #' @description
 #'
 #' seqlevels of ffTrack object
@@ -410,8 +410,8 @@ setMethod('seqinfo', 'ffTrack', function(object){
 #' @importFrom GenomeInfoDb seqlengths seqinfo seqlevels
 #' @export
 #' @author Marcin Imielinski
-setGeneric('seqlevels', function(object) standardGeneric('seqlevels'))
-setMethod('seqlevels', 'ffTrack', function(object){
+setGeneric('ffseqlevels', function(object) standardGeneric('ffseqlevels'))
+setMethod('ffseqlevels', 'ffTrack', function(object){
     seqlevels(object@.gr)
 })
 

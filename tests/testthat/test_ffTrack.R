@@ -1,5 +1,5 @@
-library(ffTrack)
 
+library(ffTrack)
 library(testthat)
 library(BSgenome)
 library(gUtils)
@@ -41,6 +41,7 @@ context('ffTrack operations')
 
 
 test_that('ffTrack', {
+    
     expect_error(ffTrack(vmode = 'error')) ## Error: Incorrect argument "vmode". Allowable modes are boolean, byte, character, complex, double, integer, logical, nibble, quad, raw, short, single, ubyte, ushort
     expect_error(ffTrack(gr = GRanges()))  ## Error: Trying to create ffTrack with empty GRanges
     ## check 'vmode'
@@ -73,8 +74,23 @@ test_that('ffTrack', {
     expect_error(ffTrack(gr, file.name = 'test.character.rds', overwrite = TRUE, vmode = 'character')) ## Message: vmode 'character' not implemented
     ## test ffTrack methods
     testff = ffTrack(gr, file.name = 'test.boolean.rds', overwrite = TRUE, vmode = 'boolean')
+    ## if (!(vmode[1] %in% MODES)){
+    expect_error(ffTrack(gr, file.name = 'test.failure.rds', overwrite = TRUE, vmode = 'failure'))
+    ## if (length(gr) == 0 | !any(width(gr) > 0))
+    expect_error(ffTrack(GRanges(), file.name = 'test.empty.rds', overwrite = TRUE, vmode = 'boolean'))
+    ## if (!grepl('\\.rds$',  file.name) & !grepl('\\.RDS$',  file.name)){
+    expect_error(ffTrack(gr, file.name = 'test.empty', overwrite = TRUE, vmode = 'boolean'), NA)
+    ## if ((file.exists(file.name) | file.exists(ff.filename)) & !overwrite){
+    expect_error(ffTrack(gr, file.name = 'test.boolean.rds', overwrite = FALSE, vmode = 'boolean'))
+    ## > (ffTrack(gr, file.name = 'test.character.rds', overwrite = TRUE, vmode = 'character'))
+    ## Error in ff(default.val, length = pmin(len, .Object@.blocksize), vmode = .Object@.vmode,  : 
+    ##   vmode 'character' not implemented
+    ## 
+    ## if (verbose){
+    foobar = ffTrack(gr, file.name = 'test.boolean.rds', overwrite = TRUE, vmode = 'boolean', verbose=TRUE)
     ## show
     expect_equal(basename(show(testff)), 'test.boolean.ffdata')
+    expect_equal(basename(show(foobar)), 'test.boolean.ffdata')
     ## size
     expect_equal(size(testff), 0.001252)
     ## vmode 
@@ -97,10 +113,14 @@ test_that('ffTrack', {
     ####### expect_error(cp(testff, '/home/travis/build/mskilab/ffTrack/ffTrack.Rcheck/tests/'), NA)  ## check function works without error
     ####### expect_true(file.exists('/home/travis/build/mskilab/ffTrack/ffTrack.Rcheck/tests/test.boolean.ffdata'))
     ####### expect_true(file.exists('/home/travis/build/mskilab/ffTrack/ffTrack.Rcheck/tests/test.boolean.rds'))
-    ## errors!
-    ## seqlengths
-    ## seqinfo
-    ## seqlevels
+    ## ffseqlengths
+    expect_equal(as.logical(ffseqlengths(testff)), NA)
+    ## ffseqinfo
+    expect_equal(as.numeric(seqnames(ffseqinfo(testff))), 1)
+    expect_equal(as.logical(seqlengths(ffseqinfo(testff))), NA)
+    expect_equal(as.data.frame(ffseqinfo(testff))$isCircular, NA)
+    ## ffseqlevels
+    expect_equal(as.numeric(ffseqlevels(testff)), 1)
     ## writeable
     expect_true(as.logical(writeable(testff)))
     ## writeable_status

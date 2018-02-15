@@ -151,7 +151,7 @@ test_that('ffTrack', {
     expect_error(mv(testff, '/home/travis/build/mskilab/ffTrack/tmp2/', overwrite = TRUE), NA) 
     ##
     expect_true(file.exists('/home/travis/build/mskilab/ffTrack/tmp2/test.boolean.ffdata'))
-    expect_true(file.exists('/home/travis/build/mskilab/ffTrack/tmp2/ƒtest.boolean.rds'))
+    expect_true(file.exists('/home/travis/build/mskilab/ffTrack/tmp2/ftest.boolean.rds'))
     ##
     ####### expect_error(mv(testff, '/path/does/not/exist'))
     ####### dir.create('/home/travis/build/mskilab/ffTrack/tmp/')

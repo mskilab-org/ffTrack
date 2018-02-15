@@ -486,7 +486,9 @@ setMethod('writeable_status', 'ffTrack', function(.Object, value)
 #' @export
 #' @author Marcin Imielinski
 setGeneric('writeable', function(.Object) standardGeneric('writeable'))
-setMethod('writeable', 'ffTrack', function(.Object) file.access(.Object@.ff.filename, 2)==0 & !is.readonly(.Object@.ff))
+setMethod('writeable', 'ffTrack', function(.Object){
+     file.access(.Object@.ff.filename, 2)==0 & !is.readonly(.Object@.ff)
+})
 
 
 

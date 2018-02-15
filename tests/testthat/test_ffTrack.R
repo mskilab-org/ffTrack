@@ -38,7 +38,9 @@ context('ffTrack operations')
 ### fftab
 ### match.bs
 
+system("mkdir /home/travis/build/mskilab/ffTrack/tmp")
 
+system("mkdir /home/travis/build/mskilab/ffTrack/tmp2")
 
 test_that('ffTrack', {
     
@@ -124,9 +126,17 @@ test_that('ffTrack', {
     ## writeable
     expect_true(as.logical(writeable(testff)))
     ## writeable_status
-    expect_error(writeable_status(testff))   ## looks like function doesn't work
+    ## if (!is.logical(value))
+    expect_error(writeable_status(testff, 'false'))
+    ## default
+    testff = ffTrack(gr, file.name = 'test.boolean.rds', overwrite = TRUE, vmode = 'boolean')
+    trueff = writeable_status(testff, TRUE)
+    falseff = writeable_status(testff, FALSE)
+    ## this is wrong
+    expect_true(as.logical(writeable(trueff)))
+    expect_true(as.logical(writeable(falseff)))
     ## mv ## then check it exists as done
-    expect_error(mv(testff))
+    ## expect_error(mv(testff))
     ####### expect_error(mv(testff, '/path/does/not/exist'))
     ####### dir.create('/home/travis/build/mskilab/ffTrack/tmp/')
     ####### mv(testff, '/home/travis/build/mskilab/ffTrack/tmp/')

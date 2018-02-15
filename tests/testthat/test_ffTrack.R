@@ -42,6 +42,9 @@ system("mkdir /home/travis/build/mskilab/ffTrack/tmp")
 
 system("mkdir /home/travis/build/mskilab/ffTrack/tmp2")
 
+
+
+
 test_that('ffTrack', {
     
     expect_error(ffTrack(vmode = 'error')) ## Error: Incorrect argument "vmode". Allowable modes are boolean, byte, character, complex, double, integer, logical, nibble, quad, raw, short, single, ubyte, ushort
@@ -84,6 +87,9 @@ test_that('ffTrack', {
     expect_error(ffTrack(gr, file.name = 'test.empty', overwrite = TRUE, vmode = 'boolean'), NA)
     ## if ((file.exists(file.name) | file.exists(ff.filename)) & !overwrite){
     expect_error(ffTrack(gr, file.name = 'test.boolean.rds', overwrite = FALSE, vmode = 'boolean'))
+    ## ISSUE
+    ## 'complex', 'character' not implemented
+    ##
     ## > (ffTrack(gr, file.name = 'test.character.rds', overwrite = TRUE, vmode = 'character'))
     ## Error in ff(default.val, length = pmin(len, .Object@.blocksize), vmode = .Object@.vmode,  : 
     ##   vmode 'character' not implemented
@@ -93,6 +99,7 @@ test_that('ffTrack', {
     ## show
     expect_equal(basename(show(testff)), 'test.boolean.ffdata')
     expect_equal(basename(show(foobar)), 'test.boolean.ffdata')
+    ## 
     ## size
     expect_equal(size(testff), 0.001252)
     ## vmode 
@@ -135,8 +142,17 @@ test_that('ffTrack', {
     ## this is wrong
     expect_true(as.logical(writeable(trueff)))
     expect_true(as.logical(writeable(falseff)))
-    ## mv ## then check it exists as done
-    ## expect_error(mv(testff))
+    ## mv
+    expect_error(mv(testff))    ## Error in mv(testff) : argument "path" is missing, with no default
+    ##                            
+    expect_error(mv(testff, '/home/travis/build/mskilab/ffTrack/tmp2/')) ## Error: One or more of the target paths exist, rerun with overwrite = FALSE to overwrite
+    ## 
+    ## check this runs
+    expect_error(mv(testff, '/home/travis/build/mskilab/ffTrack/tmp2/', overwrite = TRUE), NA) 
+    ##
+    expect_true(file.exists('/home/travis/build/mskilab/ffTrack/tmp2/test.boolean.ffdata'))
+    expect_true(file.exists('/home/travis/build/mskilab/ffTrack/tmp2/ƒtest.boolean.rds'))
+    ##
     ####### expect_error(mv(testff, '/path/does/not/exist'))
     ####### dir.create('/home/travis/build/mskilab/ffTrack/tmp/')
     ####### mv(testff, '/home/travis/build/mskilab/ffTrack/tmp/')

@@ -533,7 +533,7 @@ setMethod('mv', 'ffTrack', function(.Object, path, overwrite = FALSE, keep.origi
     ff.path = gsub('\\.rds', '\\.ffdata', path)
 
     if ((file.exists(ff.path) | file.exists(path)) & !overwrite){
-        stop('Error: One or more of the target paths exist, rerun with overwrite = FALSE to overwrite')
+        stop('Error: One or more of the target paths exist, rerun with overwrite = TRUE to overwrite')
     }
 
     ff.aux.path = c()
@@ -541,7 +541,7 @@ setMethod('mv', 'ffTrack', function(.Object, path, overwrite = FALSE, keep.origi
         for (i in 1:length(.Object@.ffaux)){
             ff.aux.path[i] = paste(ff.path, '.', i, sep = '')
             if (file.exists(ff.aux.path[i]) & !overwrite){
-                stop('Error: One or more of the target paths exist, rerun with overwrite = FALSE to overwrite')
+                stop('Error: One or more of the target paths exist, rerun with overwrite = TRUE to overwrite')
             }
         }
     }

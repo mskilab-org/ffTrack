@@ -578,13 +578,13 @@ setMethod('mv', 'ffTrack', function(.Object, path, overwrite = FALSE, keep.origi
 
 #' @name [<-
 #' @title [<-
-#' @description
 #'
+#' @description
 #' ffTrack data populator
 #'
 #' Takes as input only a GRanges object "i" and vector or list "value" of length(i) which is interpreted as follows
 #' (1) if vector, then each value[j] corresponds is assigned to (entire) range i[j]
-#' (2)if list of vectors, then length(value[[j]]) must be equal to length(i[j])
+#' (if if list of vectors, then length(value[[j]]) must be equal to length(i[j])
 #'
 #' vmode of values must be also compatible or coercible to vmode(x)
 #'
@@ -603,134 +603,142 @@ setMethod('mv', 'ffTrack', function(.Object, path, overwrite = FALSE, keep.origi
 #' @param op operation can be either "+", "-", "*", "/", and only for numeric ffTrack
 #' @param raw output raw integer data for factor as opposed to character
 #' @param full logical flag whether the replacement value is a single vector whose sum is the summed width of the ranges "i"
+#'
 #' @export
 #' @author Marcin Imielinski
-## setGeneric('[<-', function(x, i, value, op, raw, full) standardGeneric('[<-'))
-setMethod('[<-', 'ffTrack', function(x, i, value, op = NULL, raw = TRUE, full = FALSE)  
-{
-    query = i;
+setMethod('[<-', 'ffTrack', function(x, i, value, op = NULL, raw = TRUE, full = FALSE)
+          {
+            query = i;
 
-    if (!is.null(op)){
-      
-        ALLOWABLE.OPS = c('+', '-', '*', '/')
-                    
-        if (!(op %in% ALLOWABLE.OPS)){
-            stop(sprintf('Error: argument "op" must be one of the following: %s', paste(ALLOWABLE.OPS, collapse = ',')))
-        }
+            if (!is.null(op))
+                {
+                    ALLOWABLE.OPS = c('+', '-', '*', '/')
+                    if (!(op %in% ALLOWABLE.OPS))
+                        stop(sprintf('op must be one of the following: %s', paste(ALLOWABLE.OPS, collapse = ',')))
 
-        if (vmode(x) %in% c('character') | !is.na(levels(x))){
-            stop('Error: argument "op" can only be specified for numeric ffTrack, this track is either character or factor track')
-        }
-                      
-    }
-
-    if (!writeable(x)){
-        stop('Error: oject is read-only, please make writeablb by setting argument "writeable" to TRUE')
-    }
-
-    if (!is(query, 'GRanges')){
-        stop('Error: ffTrack index must be a GRanges')
-    }
-
-    if (full){
-        if (length(value) != sum(width(i))){
-            stop('Error: if full = TRUE then value must be of length = sum(width(ranges))')
-        }
-    }else if (is.list(value)){
-        if (any(width(i) != sapply(value, length))){
-           stop('Error: Mismatch between widths of input GRanges and value list')
-        }
-    }else{
-        if (length(value) != length(i) & length(value) != 1){
-            stop('Error: value must be list or vector of same length as GRanges input "i", or if full = TRUE a vector of same length as sum(width(granges))')
-        }
-    }
-
-    ov = gr.findoverlaps(query, x@.gr)
-
-    if (any(ix = (start(ov) != start(query)[ov$query.id] | end(ov) != end(query)[ov$query.id]))){
-        warning(sprintf('Warning: Parts of %s ranges ignored', sum(ix)))
-    }
-
-    if (is.list(value) | full){
-        values = unlist(value)
-    }else{
-        values = rep(value, width(i))
-    }
-
-    if (length(ov)>0){
-        q.ix.s = c(1, 1 + cumsum(width(query))[-length(query)])
-        q.ix1 = start(ov) - start(query)[ov$query.id] + q.ix.s[ov$query.id]
-        q.ix2 = end(ov) - start(query)[ov$query.id] + q.ix.s[ov$query.id]
-
-        s.ix1 = start(ov) - start(x@.gr)[ov$subject.id] + x@.gr$ix.s[ov$subject.id]
-        s.ix2 = end(ov) - start(x@.gr)[ov$subject.id] + x@.gr$ix.s[ov$subject.id]
-
-        q.ix = do.call('c', lapply(1:length(q.ix1), function(j) q.ix1[j]:q.ix2[j]))
-        s.ix = do.call('c', lapply(1:length(s.ix1), function(j) s.ix1[j]:s.ix2[j]))
-
-        aux.ix = s.ix > x@.blocksize
-
-        ## reverse values for negative strand queries
-        if (any(ix = as.logical(strand(query)=='-'))){
-            w = width(query)
-            q.id = unlist(lapply(1:length(query), function(x) rep(x, w[x])))
-            q.l = split(1:length(values), q.id)
-            for (j in q.l[ix]){
-                values[j] = rev(values[j])
-            }
-        }
-                 
-        ## populate as factor if levels exist and raw = FALSE
-        if (!(all(is.na(x@.levels))) & !raw){
-            x@.ff[s.ix[!aux.ix]] = factor(values[q.ix[!aux.ix]], x@.levels)
-        } else{
-            if (is.null(op)){
-              x@.ff[s.ix[!aux.ix]] = values[q.ix[!aux.ix]]
-            } else{
-                if (op == '+'){
-                    x@.ff[s.ix[!aux.ix]] = x@.ff[s.ix[!aux.ix]] + values[q.ix[!aux.ix]]
-                } else if (op == '-'){
-                    x@.ff[s.ix[!aux.ix]] = x@.ff[s.ix[!aux.ix]] - values[q.ix[!aux.ix]]
-                } else if (op == '*'){
-                    x@.ff[s.ix[!aux.ix]] = x@.ff[s.ix[!aux.ix]] * values[q.ix[!aux.ix]]
-                } else if (op == '/'){
-                    x@.ff[s.ix[!aux.ix]] = x@.ff[s.ix[!aux.ix]] / values[q.ix[!aux.ix]]
+                    if (vmode(x) %in% c('character') | !is.na(levels(x)))
+                        stop('op can only be specified for numeric ffTrack, this track is either character or factor track')
                 }
-            }
-        }
 
-        if (any(aux.ix)){
-            aux.chunk = floor(s.ix[aux.ix] / x@.blocksize)
+            if (!writeable(x))
+              stop('object is read only, please make writeable, by setting writeable to TRUE')
 
-            for (j in unique(aux.chunk)){
-                tmp.ix = which(aux.chunk == j)
-                
-                ## populate as factor if levels exist
-                if (!all(is.na(x@.levels)) & !raw){
-                    x@.ffaux[[j]][s.ix[aux.ix][tmp.ix] - j*x@.blocksize] = factor(as.vector(values[q.ix[aux.ix][tmp.ix]]), x@.levels)
-                } else{
-                    if (is.null(op)){
-                        x@.ffaux[[j]][s.ix[aux.ix][tmp.ix] - j*x@.blocksize] = as.vector(values[q.ix[aux.ix][tmp.ix]])
-                    } else{
-                        if (op == '+'){
-                            x@.ffaux[[j]][s.ix[aux.ix][tmp.ix] - j*x@.blocksize] = x@.ffaux[[j]][s.ix[aux.ix][tmp.ix] - j*x@.blocksize] + as.vector(values[q.ix[aux.ix][tmp.ix]])
-                        } else if (op == '-'){
-                            x@.ffaux[[j]][s.ix[aux.ix][tmp.ix] - j*x@.blocksize] = x@.ffaux[[j]][s.ix[aux.ix][tmp.ix] - j*x@.blocksize] - as.vector(values[q.ix[aux.ix][tmp.ix]])
-                        } else if (op == '*'){
-                            x@.ffaux[[j]][s.ix[aux.ix][tmp.ix] - j*x@.blocksize] = x@.ffaux[[j]][s.ix[aux.ix][tmp.ix] - j*x@.blocksize] * as.vector(values[q.ix[aux.ix][tmp.ix]])
-                        } else if (op == '/'){
-                            x@.ffaux[[j]][s.ix[aux.ix][tmp.ix] - j*x@.blocksize] = x@.ffaux[[j]][s.ix[aux.ix][tmp.ix] - j*x@.blocksize] / as.vector(values[q.ix[aux.ix][tmp.ix]])
-                        }
+            if (!is(query, 'GRanges'))
+              stop('ffTrack index must be a GRanges')
+
+            if (full)
+                {
+                    if (length(value) != sum(width(i)))
+                        stop("if full = TRUE then value must be of length = sum(width(ranges))")
+                }
+            else if (is.list(value))
+                {
+                    if (any(width(i) != sapply(value, length)))
+                        stop('mismatch between widths of input GRanges and value list')
+                }
+            else
+                {
+                    if (length(value) != length(i) & length(value) != 1)
+                        stop('value must be list or vector of same length as GRanges input "i", or if full = TRUE a vector of same length as sum(width(granges))')
+                }
+
+            ov = gr.findoverlaps(query, x@.gr)
+
+            if (any(ix <- (start(ov) != start(query)[ov$query.id] | end(ov) != end(query)[ov$query.id])))
+              warning(sprintf('Parts of %s ranges ignored', sum(ix)))
+
+            if (is.list(value) | full)
+              values = unlist(value)
+            else
+              values = rep(value, width(i))
+
+
+            if (length(ov)>0)
+              {
+#                ov.ix.s = c(1, 1 + cumsum(width(ov))[-length(ov)])
+#                q.ix1 = start(ov) - start(query)[ov$query.id] + ov.ix.s
+#                q.ix2 = end[B(ov) - start(query)[ov$query.id] + ov.ix.s
+
+                q.ix.s = c(1, 1 + cumsum(width(query))[-length(query)])
+                q.ix1 = start(ov) - start(query)[ov$query.id] + q.ix.s[ov$query.id]
+                q.ix2 = end(ov) - start(query)[ov$query.id] + q.ix.s[ov$query.id]
+
+                s.ix1 = start(ov) - start(x@.gr)[ov$subject.id] + x@.gr$ix.s[ov$subject.id]
+                s.ix2 = end(ov) - start(x@.gr)[ov$subject.id] + x@.gr$ix.s[ov$subject.id]
+
+                q.ix = do.call('c', lapply(1:length(q.ix1), function(j) q.ix1[j]:q.ix2[j]))
+                s.ix = do.call('c', lapply(1:length(s.ix1), function(j) s.ix1[j]:s.ix2[j]))
+
+                aux.ix = s.ix > x@.blocksize
+
+                ## reverse values for negative strand queries
+                if (any(ix <- as.logical(strand(query)=='-')))
+                  {
+                    w = width(query)
+                    q.id = unlist(lapply(1:length(query), function(x) rep(x, w[x])))
+                    q.l = split(1:length(values), q.id)
+                    for (j in q.l[ix])
+                      values[j] = rev(values[j])
+                  }
+
+                if (!(all(is.na(x@.levels))) & !raw) ## populate as factor if levels exist and raw = FALSE
+                  x@.ff[s.ix[!aux.ix]] = factor(values[q.ix[!aux.ix]], x@.levels)
+                else
+                    {
+                        if (is.null(op))
+                            x@.ff[s.ix[!aux.ix]] = values[q.ix[!aux.ix]]
+                        else
+                            {
+                                if (op == '+')
+                                    x@.ff[s.ix[!aux.ix]] = x@.ff[s.ix[!aux.ix]] + values[q.ix[!aux.ix]]
+                                else if (op == '-')
+                                    x@.ff[s.ix[!aux.ix]] = x@.ff[s.ix[!aux.ix]] - values[q.ix[!aux.ix]]
+                                else if (op == '*')
+                                    x@.ff[s.ix[!aux.ix]] = x@.ff[s.ix[!aux.ix]] * values[q.ix[!aux.ix]]
+                                else if (op == '/')
+                                    x@.ff[s.ix[!aux.ix]] = x@.ff[s.ix[!aux.ix]] / values[q.ix[!aux.ix]]
+                            }
                     }
-                }
-            }
-        }
-    }
 
-    return(x)
-          
-})
+                if (any(aux.ix))
+                  {
+                    aux.chunk = floor(s.ix[aux.ix] / x@.blocksize)
+
+                    for (j in unique(aux.chunk))
+                      {
+                        tmp.ix = which(aux.chunk == j)
+
+                        if (!all(is.na(x@.levels)) & !raw) ## populate as factor if levels exist
+                          x@.ffaux[[j]][s.ix[aux.ix][tmp.ix] - j*x@.blocksize] =
+                            factor(as.vector(values[q.ix[aux.ix][tmp.ix]]), x@.levels)
+                        else
+                            {
+                                if (is.null(op))
+                                    x@.ffaux[[j]][s.ix[aux.ix][tmp.ix] - j*x@.blocksize] =
+                                        as.vector(values[q.ix[aux.ix][tmp.ix]])
+                                else
+                                    {
+                                        if (op == '+')
+                                            x@.ffaux[[j]][s.ix[aux.ix][tmp.ix] - j*x@.blocksize] =
+                                                x@.ffaux[[j]][s.ix[aux.ix][tmp.ix] - j*x@.blocksize]  +  as.vector(values[q.ix[aux.ix][tmp.ix]])
+                                        else if (op == '-')
+                                            x@.ffaux[[j]][s.ix[aux.ix][tmp.ix] - j*x@.blocksize] =
+                                                x@.ffaux[[j]][s.ix[aux.ix][tmp.ix] - j*x@.blocksize]  -  as.vector(values[q.ix[aux.ix][tmp.ix]])
+                                        else if (op == '*')
+                                            x@.ffaux[[j]][s.ix[aux.ix][tmp.ix] - j*x@.blocksize] =
+                                                x@.ffaux[[j]][s.ix[aux.ix][tmp.ix] - j*x@.blocksize]  *  as.vector(values[q.ix[aux.ix][tmp.ix]])
+                                        else if (op == '/')
+                                            x@.ffaux[[j]][s.ix[aux.ix][tmp.ix] - j*x@.blocksize] =
+                                                x@.ffaux[[j]][s.ix[aux.ix][tmp.ix] - j*x@.blocksize]  /  as.vector(values[q.ix[aux.ix][tmp.ix]])
+                                    }
+                            }
+                      }
+                  }
+              }
+
+            return(x)
+          })
+
 
 
 

@@ -143,17 +143,18 @@ test_that('ffTrack', {
     expect_true(as.logical(writeable(trueff)))
     expect_true(as.logical(writeable(falseff)))
     ## mv
-    expect_error(mv(testff))    ## Error in mv(testff) : argument "path" is missing, with no default
+    testmv = ffTrack(gr, file.name = 'test.mv.rds', overwrite = TRUE, vmode = 'boolean')
+    expect_error(mv(testmv))    ## Error in mv(testff) : argument "path" is missing, with no default
     ##                            
-    expect_error(mv(testff, '/home/travis/build/mskilab/ffTrack/tmp2/')) ## Error: One or more of the target paths exist, rerun with overwrite = FALSE to overwrite
+    expect_error(mv(testmv, '/home/travis/build/mskilab/ffTrack/tmp2/')) ## Error: One or more of the target paths exist, rerun with overwrite = FALSE to overwrite
     ## 
     ## check this runs
-    mv(testff, '/home/travis/build/mskilab/ffTrack/tmp2/', overwrite = TRUE)
+    mv(testmv, '/home/travis/build/mskilab/ffTrack/tmp2/', overwrite = TRUE)
     ##
     print('check file.exists() ')
-    print(file.exists('/home/travis/build/mskilab/ffTrack/tmp2/test.boolean.ffdata'))
+    print(file.exists('/home/travis/build/mskilab/ffTrack/tmp2/test.mv.ffdata'))
     print('check file.exists() ')
-    print(file.exists('/home/travis/build/mskilab/ffTrack/tmp2/ftest.boolean.rds'))
+    print(file.exists('/home/travis/build/mskilab/ffTrack/tmp2/test.mv.rds'))
     ##
     ####### expect_error(mv(testff, '/path/does/not/exist'))
     ####### dir.create('/home/travis/build/mskilab/ffTrack/tmp/')
@@ -183,11 +184,23 @@ print(list.files("/home/travis/build/mskilab/ffTrack/"))
 
 
 
-#test_that('checking [<- ', {
+test_that('checking [<- ', {
 
+    gr = GRanges('2:10000-20000')
+    testff = ffTrack(gr, file.name = 'test.ffdatapopulator.rds', overwrite = TRUE, vmode = 'boolean')
+    expect_error((testff[gr.start(gr)] = 15000), NA)
+    ## > testff[gr.start(gr)] = rep(15, width(gr))
+    ## Error in .local(x, i, ..., value) : 
+    ##   Error: value must be list or vector of same length as GRanges input "i", or if full = TRUE a vector of same length as sum(width(granges))
+    ## > testff[gr.start(gr)] = rep(15, width(gr)+1)
+    ## Error in .local(x, i, ..., value) : 
+    ##   Error: value must be list or vector of same length as GRanges input "i", or if full = TRUE a vector of same length as sum(width(granges))
+    ### as the width(gr) > 1
+    ## > testff[gr] = runif(sum(width(gr)))
+    ## Error in .local(x, i, ..., value) : 
+    ##    Error: value must be list or vector of same length as GRanges input "i", or if full = TRUE a vector of same length as sum(width(granges))
 
-
-#})
+})
 
 
 
@@ -196,7 +209,7 @@ print(list.files("/home/travis/build/mskilab/ffTrack/"))
 ## but simple example is somethiing like
 ## myff = ffTrack(granges, path)
 ## myff[gr.start(granges)] = 10
-## 
+## test
 ## myff[granges] = 10
 ## myff[granges] = rep(10, width(granges))
 ## but this should fail

@@ -24,7 +24,7 @@ ffTrack data populator
 
 Takes as input only a GRanges object "i" and vector or list "value" of length(i) which is interpreted as follows
 (1) if vector, then each value[j] corresponds is assigned to (entire) range i[j]
-(2)if list of vectors, then length(value[[j]]) must be equal to length(i[j])
+(if if list of vectors, then length(value[[j]]) must be equal to length(i[j])
 
 vmode of values must be also compatible or coercible to vmode(x)
 

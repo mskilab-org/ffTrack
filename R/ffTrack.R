@@ -584,7 +584,7 @@ setMethod('mv', 'ffTrack', function(.Object, path, overwrite = FALSE, keep.origi
 #'
 #' Takes as input only a GRanges object "i" and vector or list "value" of length(i) which is interpreted as follows
 #' (1) if vector, then each value[j] corresponds is assigned to (entire) range i[j]
-#' (if if list of vectors, then length(value[[j]]) must be equal to length(i[j])
+#' (2)if list of vectors, then length(value[[j]]) must be equal to length(i[j])
 #'
 #' vmode of values must be also compatible or coercible to vmode(x)
 #'
@@ -606,7 +606,7 @@ setMethod('mv', 'ffTrack', function(.Object, path, overwrite = FALSE, keep.origi
 #' @export
 #' @author Marcin Imielinski
 ## setGeneric('[<-', function(x, i, value, op, raw, full) standardGeneric('[<-'))
-setMethod('[<-', 'ffTrack', function(x, i, value, op = NULL, raw = TRUE, full = FALSE)
+setMethod('[<-', 'ffTrack', function(x, i, value, op = NULL, raw = TRUE, full = FALSE)  
 {
     query = i;
 
@@ -717,11 +717,9 @@ setMethod('[<-', 'ffTrack', function(x, i, value, op = NULL, raw = TRUE, full = 
                             x@.ffaux[[j]][s.ix[aux.ix][tmp.ix] - j*x@.blocksize] = x@.ffaux[[j]][s.ix[aux.ix][tmp.ix] - j*x@.blocksize] + as.vector(values[q.ix[aux.ix][tmp.ix]])
                         } else if (op == '-'){
                             x@.ffaux[[j]][s.ix[aux.ix][tmp.ix] - j*x@.blocksize] = x@.ffaux[[j]][s.ix[aux.ix][tmp.ix] - j*x@.blocksize] - as.vector(values[q.ix[aux.ix][tmp.ix]])
-                        }
-                        else if (op == '*'){
+                        } else if (op == '*'){
                             x@.ffaux[[j]][s.ix[aux.ix][tmp.ix] - j*x@.blocksize] = x@.ffaux[[j]][s.ix[aux.ix][tmp.ix] - j*x@.blocksize] * as.vector(values[q.ix[aux.ix][tmp.ix]])
-                        }
-                        else if (op == '/'){
+                        } else if (op == '/'){
                             x@.ffaux[[j]][s.ix[aux.ix][tmp.ix] - j*x@.blocksize] = x@.ffaux[[j]][s.ix[aux.ix][tmp.ix] - j*x@.blocksize] / as.vector(values[q.ix[aux.ix][tmp.ix]])
                         }
                     }

@@ -1280,6 +1280,7 @@ wig2fft = function(wigpath, fftpath = gsub('(\\.wig.*)', '.rds', wigpath), chrsu
 #'
 #' @import rtracklayer
 #' @param seq BSGenome object, ffTrack object representing genomic sequence, or (not yet supported) FASTA file
+#' @param fftpath path to ffTrack .rds that will be created by this 
 #' @param nnuc how many nucleotides to left and right to enumerate
 #' @param dict this should be a character vector or DNAStringSet, overrides nnuc arg if not null
 #' @param chrsub whether to sub in / sub out 'chr' when accessing seq file
@@ -1294,7 +1295,7 @@ wig2fft = function(wigpath, fftpath = gsub('(\\.wig.*)', '.rds', wigpath), chrsu
 #' @return ffTrack object corresponding to the data in the BigWig file
 #' @export
 #'
-seq2fft = function(seq, nnuc = 0, dict = NULL, chrsub = TRUE, neg = FALSE, region = NULL, mc.cores = 1, verbose = FALSE,
+seq2fft = function(seq, fftpath, nnuc = 0, dict = NULL, chrsub = TRUE, neg = FALSE, region = NULL, mc.cores = 1, verbose = FALSE,
     buffer = 1e5, skip.sweep = FALSE, vmode = 'ubyte', min.gapwidth = 1e3)
 {
     if (!inherits(seq, 'BSgenome') & !is(seq, 'ffTrack')){
@@ -1325,7 +1326,7 @@ seq2fft = function(seq, nnuc = 0, dict = NULL, chrsub = TRUE, neg = FALSE, regio
         context = TRUE
     } else{
         if (!is(dict, 'character'))
-          dict = Biostrings::DNAStringSet(dict)
+            dict = Biostrings::DNAStringSet(dict)
     }
 
 

@@ -148,7 +148,7 @@ test_that('ffTrack', {
     expect_error(mv(testff, '/home/travis/build/mskilab/ffTrack/tmp2/')) ## Error: One or more of the target paths exist, rerun with overwrite = FALSE to overwrite
     ## 
     ## check this runs
-    expect_error(mv(testff, '/home/travis/build/mskilab/ffTrack/tmp2/', overwrite = TRUE), NA) 
+    mv(testff, '/home/travis/build/mskilab/ffTrack/tmp2/', overwrite = TRUE)
     ##
     print('check file.exists() ')
     print(file.exists('/home/travis/build/mskilab/ffTrack/tmp2/test.boolean.ffdata'))
@@ -174,17 +174,20 @@ test_that('ffTrack', {
 
 
 print('/home/travis/build/mskilab/ffTrack/tmp2/:   ')
-list.files('/home/travis/build/mskilab/ffTrack/tmp2/')
+print(list.files('/home/travis/build/mskilab/ffTrack/tmp2/'))
 print('/home/travis/build/mskilab/ffTrack/:   ')
-list.files("/home/travis/build/mskilab/ffTrack/")
+print(list.files("/home/travis/build/mskilab/ffTrack/"))
 
 ### [<-
 
-test_that('checking [<- ', {
 
 
 
-})
+#test_that('checking [<- ', {
+
+
+
+#})
 
 
 
@@ -300,15 +303,26 @@ test_that('get_seq', {
 ##     buffer = 1e5, skip.sweep = FALSE, vmode = 'ubyte', min.gapwidth = 1e3)
 
 
-##test_that('seq2fft', {
-##
-##    ## default
-##    hg19 = getBSgenome('BSgenome.Hsapiens.UCSC.hg19')
-##    gr = GRanges('1:10000-20000')
-##    ## seq2fft(hg19)  fails
-##    testff = ffTrack(hg19, file.name = 'test.hg19.rds', overwrite = TRUE, vmode = 'boolean')
-##
-##})
+
+test_that('seq2fft', {
+
+    ## default
+    hg19 = getBSgenome('BSgenome.Hsapiens.UCSC.hg19')
+    gr = GRanges('1:10000-20000')
+    ## seq2fft(hg19)  fails
+    ## testff = ffTrack(hg19, file.name = 'test.hg19.rds', overwrite = TRUE, vmode = 'boolean')
+    
+    ###
+    ## if (!inherits(seq, 'BSgenome') & !is(seq, 'ffTrack'))
+    expect_error(seq2fft(GRanges()))
+    ### Error in is(fftpath, "ffTrack") : object 'fftpath' not found
+    expect_error(seq2fft(hg19))
+
+
+
+})
+
+
 
 
 

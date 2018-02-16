@@ -6,7 +6,8 @@
 \usage{
 seq2fft(seq, fftpath, nnuc = 0, dict = NULL, chrsub = TRUE, neg = FALSE,
   region = NULL, mc.cores = 1, verbose = FALSE, buffer = 1e+05,
-  skip.sweep = FALSE, vmode = "ubyte", min.gapwidth = 1000)
+  skip.sweep = FALSE, vmode = "ubyte", overwrite = FALSE,
+  min.gapwidth = 1000)
 }
 \arguments{
 \item{seq}{BSGenome object, ffTrack object representing genomic sequence, or (not yet supported) FASTA file}

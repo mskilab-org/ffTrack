@@ -279,7 +279,7 @@ setMethod('levels<-', 'ffTrack', function(x, value)
 #'
 #' @export
 #' @author Marcin Imielinski
-setGeneric('ranges', function(x) standardGeneric('ranges'))
+#setGeneric('ranges', function(x) standardGeneric('ranges'))
 setMethod('ranges', 'ffTrack', function(x)
           x@.gr)
 
@@ -893,6 +893,7 @@ wig2fft = function(wigpath,
   vmode = 'double',
   gz = grepl('\\.gz$', wigpath),
   bz2 = grepl('\\.bz2$', wigpath),
+  ...,
   min.gapwidth = 1e3 ## flank (to reduce the range complexity of the ffdata skeleton, but increase file size)
   )
   {
@@ -908,7 +909,7 @@ wig2fft = function(wigpath,
       }
     else
       {
-        grepstr = sprintf('grep -nP "\\S+Step" %s', wigpath)
+        grepstr = sprintf('grep -nP "\\S+[Ss]tep" %s', wigpath)
         wcstr = sprintf('wc -l %s', wigpath)
       }
 
@@ -970,7 +971,7 @@ wig2fft = function(wigpath,
           }
         else if (ncol == 6)
           {
-            tmp = tryCatch(matrix(unlist(strsplit(steps, '(\\:)|( )')), ncol = 5, byrow = TRUE, dimnames = list(c(), col.names)), error = function(x) NULL)
+            tmp = tryCatch(matrix(unlist(strsplit(steps, '(\\:)|( )')), ncol = 6, byrow = TRUE, dimnames = list(c(), col.names)), error = function(x) NULL)
 
             if (is.null(tmp))
               stop('FixedStep WIG file corrupt: make sure that every declaration line has same format with 5 or 6 columns (+/- span) according to UCSC website')
@@ -996,7 +997,7 @@ wig2fft = function(wigpath,
         if (verbose)
           cat(sprintf('Creating ffData with vmode %s for %s ranges spanning %s bases of sequence\n', vmode, nrow(tab), sum(tab$width)))
 
-        fft = ffTrack(reduce(gr.fix(seg2gr(tab, seqlengths = NULL), seqlengths), min.gapwidth = min.gapwidth), fftpath, vmode = vmode)
+        fft = ffTrack(reduce(gr.fix(seg2gr(tab, seqlengths = NULL), seqlengths), min.gapwidth = min.gapwidth), fftpath, vmode = vmode, ...)
 
         if (verbose)
           cat(sprintf('\t.ffdata file %s has size %sM\n', filename(fft)['ff'], round(size(fft))))

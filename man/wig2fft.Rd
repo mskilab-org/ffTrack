@@ -7,7 +7,7 @@
 wig2fft(wigpath, fftpath = gsub("(\\\\.wig.*)", ".rds", wigpath),
   chrsub = TRUE, verbose = F, buffer = 1e+05, skip.sweep = FALSE,
   seqlengths = hg_seqlengths(), vmode = "double", gz = grepl("\\\\.gz$",
-  wigpath), bz2 = grepl("\\\\.bz2$", wigpath), min.gapwidth = 1000)
+  wigpath), bz2 = grepl("\\\\.bz2$", wigpath), ..., min.gapwidth = 1000)
 }
 \arguments{
 \item{fftpath}{path to ffTrack .rds that will be created by this (by default .bw is replaced by .rds)}

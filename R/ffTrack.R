@@ -794,14 +794,14 @@ bw2fft = function(bwpath,
   chrsub = TRUE, ## whether to sub in / sub out 'chr' when accessing bigwig file
 #  mc.cores = 1, ## currently mc.cores can only be one (weird mclapply bug when running)
   verbose = FALSE,
-  buffer = 1e5, # number of bases to access at a time
+  buffer = 1e7, # number of bases to access at a time
   skip.sweep = FALSE, # if TRUE will not sweep for covered region, just make a whole genome file or a file across provided regions
   vmode = 'double',
+  mc.cores = 1,
   resume = FALSE,  ## in case something went wrong can update an existing file
   min.gapwidth = 1e3 ## flank (to reduce the range complexity of the ffdata skeleton, but increase file size)
   )
   {
-    mc.cores = 1;
 
     if (!is.null(region))
       if (chrsub)
@@ -824,8 +824,8 @@ bw2fft = function(bwpath,
         covered = reduce(do.call('c', parallel::mclapply(1:length(tiles), function(x)
           {
             if (verbose)
-              cat(x, ' ')
-            reduce(import.ucsc(bwpath, selection = tiles[x], chrsub = FALSE), min.gapwidth = min.gapwidth)
+              message(x, ' of ', length(tiles))
+            reduce(import(bwpath, selection = tiles[x], chrsub = FALSE), min.gapwidth = min.gapwidth)
           }, mc.cores = mc.cores)), min.gapwidth = min.gapwidth)
       }
     else if (!is.null(region))
@@ -835,6 +835,11 @@ bw2fft = function(bwpath,
 
     if (chrsub)
       covered = gr.sub(covered, 'chr', '')
+
+    if (sum(as.numeric(width(covered)))==0)
+    {
+      stop('.bw file has no data, unable to create ffTrack from empty BigWig file')
+    }
 
     if (resume)
       fft = readRDS(fftpath)

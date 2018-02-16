@@ -87,11 +87,11 @@ setMethod('initialize', 'ffTrack', function(.Object,
             if ((file.exists(file.name) | file.exists(ff.filename)) & !overwrite)
               stop('Target files already exist, to overwrite type overwrite = TRUE')
 
-            writeLines('', file.name)
-            writeLines('', ff.filename)
+#            writeLines('', file.name)
+#            writeLines('', ff.filename)
 
-            .Object@.rds.filename = normalizePath(file.name)
-            .Object@.ff.filename = normalizePath(ff.filename)
+            .Object@.rds.filename = paste0(normalizePath(dirname(file.name)), '/', basename(file.name))
+            .Object@.ff.filename = paste0(normalizePath(dirname(ff.filename)), '/', basename(ff.filename))
 
             len = sum(as.numeric(width(gr)))
 
@@ -1239,7 +1239,7 @@ get_seq = function(hg, gr, unlist = TRUE, mc.cores = 1, mc.chunks = mc.cores,
 #' @return ffTrack object corresponding to the data in the BigWig file
 #' @export
 #'
-seq2fft = function(seq, ## BSGenome object, ffTrack object representing genomic sequence, or (not yet supported) FASTA file
+seq2fft = function(seq, ## BSGenome object, ffTrack object representing genomic sequence, or .2bit (binary sequence format ie compressed FASTA, see UCSC)
   fftpath,
   nnuc = 0, ## how many nucleotides to left and right to enumerate
   dict = NULL, ## this should be a character vector or DNAStringSet, overrides nnuc arg if not null
@@ -1251,12 +1251,26 @@ seq2fft = function(seq, ## BSGenome object, ffTrack object representing genomic 
   buffer = 1e5, # number of bases to access at a time
   skip.sweep = FALSE, # if TRUE will not sweep for covered region, just make a whole genome file or a file across provided regions
   vmode = 'ubyte',
+  overwrite = FALSE,
   min.gapwidth = 1e3 ## flank (to reduce the range complexity of the ffdata skeleton, but increase file size)
   )
 {
-    if (inherits(seq, 'BSgenome') | is(seq, 'ffTrack'))
-    {
-      if (is.null(region))
+
+  if (is.character(seq))
+  {
+    isTwoBit = grepl("\\.2bit$", seq)
+    if (isTwoBit)
+      {
+        seq = TwoBitFile(seq)
+      }
+  }
+
+  if (!(inherits(seq, 'BSgenome') | is(seq, 'ffTrack') | is(seq, 'TwoBitFile')))
+  {
+    stop('Only BSGenome, ffTrack, or TwoBitFile / .2bit input for seq currently supported')
+  }
+  
+  if (is.null(region))
         {
           region = si2gr(seq)
           if (chrsub)
@@ -1291,7 +1305,7 @@ seq2fft = function(seq, ## BSGenome object, ffTrack object representing genomic 
           if (verbose)
             cat(sprintf('Making ffTrack for genome %s spanning %s MB of sequence\n', attributes(seq)$seqs_pkgname, round(sum(as.numeric(width(region)))/1e6, 2)))
 
-          fft = ffTrack(region, fftpath, levels = as.character(dict), vmode = vmode)
+          fft = ffTrack(region, fftpath, levels = as.character(dict), vmode = vmode, overwrite = overwrite)
         }
 
       if (verbose)
@@ -1333,9 +1347,6 @@ seq2fft = function(seq, ## BSGenome object, ffTrack object representing genomic 
                }, mc.cores = mc.cores)
 
       return(fft)
-    }
-  else
-    stop('Only BSGenome and ffTrack input for seq currently supported')
 }
 
 #' @name fftab
@@ -1544,7 +1555,8 @@ get_seq = function(hg, gr, unlist = T, mc.cores = 1, mc.chunks = mc.cores, add.c
 
               hg = TwoBitFile(hg)
           }
-      
+
+
       gr = gr.fix(gr, hg)
       if (length(wtf <- setdiff(as.character(seqnames(gr)), seqlevels(seqinfo(hg))))>0)
           stop(paste('Please correct .. one or more input loci address sequences that do not exist on the reference:', paste(sort(wtf), collapse = ',')))
@@ -1555,6 +1567,8 @@ get_seq = function(hg, gr, unlist = T, mc.cores = 1, mc.chunks = mc.cores, add.c
               if (!all(grepl('chr', as.character(seqnames(gr)))) & all(grepl('chr', names(seqlengths(hg)))))
                   gr = gr.chr(gr)
           }
+
+
 
       if (mc.cores>1)
         {

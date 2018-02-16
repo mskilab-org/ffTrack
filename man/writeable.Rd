@@ -7,7 +7,7 @@
 writeable(.Object)
 }
 \description{
-Access writeable status of ffTrack object
+access writeable status of ffTrack object
 }
 \author{
 Marcin Imielinski

@@ -14,21 +14,21 @@ bw2fft(bwpath, fftpath = gsub("(\\\\.bw.*)|(\\\\.bigwig.*)", ".rds", bwpath),
 
 \item{fftpath}{path to ffTrack .rds that will be created by this (by default .bw is replaced by .rds)}
 
-\item{region}{GRanges specifying regions to limit ffTrack computation to (default is whole genome, ie seqnames of BigWig file); whether to limit to certain region (instead of whole genome)}
+\item{region}{GRanges specifying regions to limit ffTrack computation to (default is whole genome, ie seqnames of BigWig file)}
 
-\item{chrsub}{whether to sub out 'chr' in seqnames / seqlevels of BigWig object; whether to sub in / sub out 'chr' when accessing bigwig file}
+\item{chrsub}{whether to sub out 'chr' in seqnames / seqlevels of BigWig object}
 
 \item{verbose}{logical flag}
 
-\item{buffer}{integer size of how big of a buffer to use when transferring data from BigWig to ffTrack object; number of bases to access at a time}
+\item{buffer}{integer size of how big of a buffer to use when transferring data from BigWig to ffTrack object}
 
-\item{skip.sweep}{logical flag (default FALSE) if TRUE will skip the sweep of "region" for the portions that have non-NA values; if TRUE will not sweep for covered region, just make a whole genome file or a file across provided regions}
+\item{skip.sweep}{logical flag (default FALSE) if TRUE will skip the sweep of "region" for the portions that have non-NA values}
 
-\item{vmode}{character specifying vmode to use for encoding (default == 'double')}
+\item{vmode}{character specifyhing vmode to use for encoding (by default double)}
 
 \item{resume}{logical flag specifying whether to resume the populatino of an already existing ffTrack object (default FALSE)}
 
-\item{min.gapwidth}{minimum gap-width with which to merge reference adjacent intervals, this will mildly increase the file size but reduce the range complexity of the GRanges object; flank (to reduce the range complexity of the ffdata skeleton, but increase file size)}
+\item{min.gapwidth}{minimum gap-width with which to merge reference adjacent intervals, this will mildly increase the file size but reduce the range complexity of the GRanges object}
 }
 \value{
 ffTrack object corresponding to the data in the BigWig file

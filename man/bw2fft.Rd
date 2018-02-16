@@ -6,8 +6,8 @@
 \usage{
 bw2fft(bwpath, fftpath = gsub("(\\\\.bw.*)|(\\\\.bigwig.*)", ".rds", bwpath),
   region = NULL, chrsub = TRUE, verbose = FALSE, buffer = 1e+07,
-  skip.sweep = FALSE, vmode = "double", mc.cores = 1, resume = FALSE,
-  min.gapwidth = 1000)
+  skip.sweep = FALSE, vmode = "double", mc.cores = 1, ...,
+  resume = FALSE, min.gapwidth = 1000)
 }
 \arguments{
 \item{bwpath}{path to BigWig}

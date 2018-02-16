@@ -128,7 +128,7 @@ setMethod('initialize', 'ffTrack', function(.Object,
                 file.size = file.info(.Object@.ff.filename)$size / 1e6
 
                 if (length(.Object@.ffaux)>0)
-                  file.size = file.size + file.info(sapply(.Object@.ffaux, file.name))$size/1e6
+                  file.size = file.size + file.info(sapply(.Object@.ffaux, ff::filename))$size/1e6
 
                 cat('Created ffTrack object with .rds file %s and .ffdata base file %s spanning %s block(s) occupying %sM of disk\n',
                     .Object@.rds.filename, .Object@.ff.filename, file.size)
@@ -185,7 +185,7 @@ setMethod('show', 'ffTrack', function(object)
             fn = object@.ff.filename
 
             if (length(object@.ffaux)>0)
-                fn = paste(c(fn, sapply(object@.ffaux, filename)), collapse = ', ')
+                fn = paste(c(fn, sapply(object@.ffaux, ff::filename)), collapse = ', ')
 
             cat(sprintf('ffTrack object of vmode %s of ffdata filename(s) %s comprising %sM of disk space and %s GRanges: \n', vmode(object), fn, round(size(object), 2), length(object@.gr)))
           })
@@ -207,7 +207,7 @@ setMethod('size', 'ffTrack', function(object)
 
              if (length(object@.ffaux)>0)
                {
-                 fn = sapply(object@.ffaux, filename)
+                 fn = sapply(object@.ffaux, ff::filename)
                  sz = sz + sum(as.numeric(file.info(fn)$size)) / 1e6
                }
             return(sz)
@@ -321,7 +321,7 @@ setMethod('del', 'ffTrack', function(.Object, path, overwrite = FALSE)
           {
             fdel = c(.Object@.ff.filename, .Object@.rds.filename)
             if (length(.Object@.ffaux)>0)
-              fdel = c(fdel, sapply(.Object@.ffaux, filename))
+              fdel = c(fdel, sapply(.Object@.ffaux, ff::filename))
 
             if (any(file.exists(fdel)))
               {
@@ -489,7 +489,7 @@ setMethod('mv', 'ffTrack', function(.Object, path, overwrite = FALSE, keep.origi
         path <- gsub('(^|(.*\\/))?([^\\/]*)$', '\\2', path)
         .file.name <- function(paths) return(gsub('(^|(.*\\/))?([^\\/]*)', '\\3', paths)) ## put here so don't rely on skitools
         if (!file.exists(.Object@.ff.filename))
-            if (all(file.exists(paste(new.root.path, .file.name(sapply(c(list(.Object@.ff), .Object@.ffaux), filename)), sep = '/'))))
+            if (all(file.exists(paste(new.root.path, .file.name(sapply(c(list(.Object@.ff), .Object@.ffaux), ff::filename)), sep = '/'))))
                 {
                     warning('not finding source .ff filenames, but finding .ffdata files that the ffTrack in this object used to point to.  Will try re
 building, by linking the GRanges and vmode info in this object with these .ff files')
@@ -798,6 +798,7 @@ bw2fft = function(bwpath,
   skip.sweep = FALSE, # if TRUE will not sweep for covered region, just make a whole genome file or a file across provided regions
   vmode = 'double',
   mc.cores = 1,
+  ...,
   resume = FALSE,  ## in case something went wrong can update an existing file
   min.gapwidth = 1e3 ## flank (to reduce the range complexity of the ffdata skeleton, but increase file size)
   )
@@ -844,10 +845,10 @@ bw2fft = function(bwpath,
     if (resume)
       fft = readRDS(fftpath)
     else
-      fft = ffTrack(covered, fftpath)
+      fft = ffTrack(covered, fftpath, vmode = vmode,  ...)
 
     if (verbose)
-      cat(sprintf('\t.ffdata file %s has size %sM\n', filename(fft)['ff'], round(file.info(filename(fft)['ff'])$size/1e6, 2)))
+      cat(sprintf('\t.ffdata file %s has size %sM\n', ff::filename(fft)['ff'], round(file.info(ff::filename(fft)['ff'])$size/1e6, 2)))
 
     covered.tile = gr.tile(covered, buffer)
 
@@ -1005,7 +1006,7 @@ wig2fft = function(wigpath,
         fft = ffTrack(reduce(gr.fix(seg2gr(tab, seqlengths = NULL), seqlengths), min.gapwidth = min.gapwidth), fftpath, vmode = vmode, ...)
 
         if (verbose)
-          cat(sprintf('\t.ffdata file %s has size %sM\n', filename(fft)['ff'], round(size(fft))))
+          cat(sprintf('\t.ffdata file %s has size %sM\n', ff::filename(fft)['ff'], round(size(fft))))
 
         # now populate fft
         con = file(wigpath, 'r')
@@ -1302,7 +1303,7 @@ seq2fft = function(seq, ## BSGenome object, ffTrack object representing genomic 
       if (is(fftpath, 'ffTrack'))
         {
           if (verbose)
-            cat(sprintf('Populating ffTrack with filename %s with %s MB of sequence\n', filename(fftpath)['rds'], round(sum(as.numeric(width(region)))/1e6, 2)))
+            cat(sprintf('Populating ffTrack with filename %s with %s MB of sequence\n', ff::filename(fftpath)['rds'], round(sum(as.numeric(width(region)))/1e6, 2)))
 
           fft = fftpath ## append to existing fftpath
         }
@@ -1315,7 +1316,7 @@ seq2fft = function(seq, ## BSGenome object, ffTrack object representing genomic 
         }
 
       if (verbose)
-        cat(sprintf('\t.ffdata file %s has size %sM\n', filename(fft)['ff'], round(size(fft))))
+        cat(sprintf('\t.ffdata file %s has size %sM\n', ff::filename(fft)['ff'], round(size(fft))))
 
       print(tiles)
 
@@ -1754,13 +1755,12 @@ get_seq = function(hg, gr, unlist = T, mc.cores = 1, mc.chunks = mc.cores, add.c
 #' Wrapper around matchPdict to identify matches between a query
 #' string query and dictionary dict (both BString objects or subclasses)
 #'
-#' @param query Query
+#' @param query Query XStringSet / DNAStringSet 
 #' @param dict Dictionary
 #' @param midpoint Flag for output the coordinates of the match as the location,
 #'   where the midpoint of the dict string matches the given query. Default FALSE
 #' @return a vector of indices of length width(query) that contains
 #' indices of the (starting) dictionary in the query string
-#' @export
 match.bs = function(query, dict, midpoint = FALSE)
 {
   names(dict) = as.character(1:length(dict))

@@ -848,7 +848,7 @@ bw2fft = function(bwpath,
       fft = ffTrack(covered, fftpath, vmode = vmode,  ...)
 
     if (verbose)
-      cat(sprintf('\t.ffdata file %s has size %sM\n', ff::filename(fft)['ff'], round(file.info(ff::filename(fft)['ff'])$size/1e6, 2)))
+      cat(sprintf('\t.ffdata file %s has size %sM\n', filename(fft)['ff'], round(file.info(filename(fft)['ff'])$size/1e6, 2)))
 
     covered.tile = gr.tile(covered, buffer)
 
@@ -859,7 +859,7 @@ bw2fft = function(bwpath,
              {
                if (verbose)
                  cat(x, ' ')
-               tmp = import.ucsc(bwpath, selection = covered.tile[x], chrsub = chrsub)
+               tmp = import(bwpath, selection = covered.tile[x], chrsub = chrsub)
                fft[tmp] = tmp$score
                gc()
              }, mc.cores = mc.cores)

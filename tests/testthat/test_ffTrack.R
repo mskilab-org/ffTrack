@@ -97,8 +97,8 @@ test_that('ffTrack', {
     ## if (verbose){
     foobar = ffTrack(gr, file.name = 'test.boolean.rds', overwrite = TRUE, vmode = 'boolean', verbose=TRUE)
     ## show
-    expect_equal(basename(show(testff)), 'test.boolean.ffdata')
-    expect_equal(basename(show(foobar)), 'test.boolean.ffdata')
+    expect_equal(basename(filename(foobar))[1], 'test.boolean.ffdata')
+    expect_equal(basename(filename(foobar))[2], 'test.boolean.rds')
     ## 
     ## size
     expect_equal(size(testff), 0.001252)
@@ -244,8 +244,10 @@ test_that('checking [<- ', {
 ## verbose Increase verbosity
 test_that('get_seq', {
 
+    library(BSgenome)
     hg19 = getBSgenome('BSgenome.Hsapiens.UCSC.hg19')
     gr = GRanges('1:10000-20000')
+    seqlevelsStyle(gr) = 'UCSC'  ### convert to chr1
     ## default args
     expect_equal(substr(as.character(get_seq(hg19, gr)[[1]]), 1, 10), 'NTAACCCTAA')
     ## unlist
@@ -257,7 +259,11 @@ test_that('get_seq', {
     ## verbose
     expect_equal(substr(as.character(get_seq(hg19, gr, verbose=TRUE)[[1]]), 1, 10), 'NTAACCCTAA')
     ##  if (inherits(gr, 'GRangesList')){
-    expect_equal(as.character(get_seq(hg19, grl2, verbose=TRUE)[[1]]), 'TA')
+    gr1 = GRanges('chr1:30000-30005')
+    gr2 = GRanges('chr2:30000-30005')
+    gr3 = GRanges('chr3:30000-30005')
+    grlfoo = GRangesList(gr1, gr2, gr3)
+    expect_equal(as.character(get_seq(hg19, grlfoo, verbose=TRUE)[[1]]), 'TGGGGA')
     ##  if (is(hg, 'ffTrack')){
 
 })

@@ -105,7 +105,7 @@ test_that('ffTrack', {
     ## vmode 
     expect_match(vmode(testff), 'boolean')
     ## len
-    expect_equal(len(testff), 10001)
+    expect_equal(ffTrack::length(testff), 10001)
     ## levels
     expect_equal(levels(testff), NA)
     ## set_levels

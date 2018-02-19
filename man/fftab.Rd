@@ -33,10 +33,9 @@ specifying how many positions in the given interval match the given query}
 \item{na.rm}{logical flag whether to remove na during aggregation.}
 }
 \description{
-Tabulates data in ffTrack file across a set of interavls (GRanges)
-by counting the number of positions matching a given "signature" or
-applying FUN to aggregate data.  Returns the input GRanges populated with one or more meta data columns
-of counts or averages.
+Tabulates data in ffTrack file across a set of intervals (GRanges) by counting the number of positions 
+matching a given "signature" or applying FUN to aggregate data.  
+Returns the input GRanges populated with one or more meta data columns of counts or averages.
 
 Similar to gr.val in gUtils
 

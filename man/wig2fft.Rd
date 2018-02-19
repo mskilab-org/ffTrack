@@ -2,33 +2,35 @@
 % Please edit documentation in R/ffTrack.R
 \name{wig2fft}
 \alias{wig2fft}
-\title{Creates ffTrack object from input .wig file}
+\title{wig2fft}
 \usage{
 wig2fft(wigpath, fftpath = gsub("(\\\\.wig.*)", ".rds", wigpath),
-  chrsub = TRUE, verbose = F, buffer = 1e+05, skip.sweep = FALSE,
+  chrsub = TRUE, verbose = FALSE, buffer = 1e+05, skip.sweep = FALSE,
   seqlengths = hg_seqlengths(), vmode = "double", gz = grepl("\\\\.gz$",
-  wigpath), bz2 = grepl("\\\\.bz2$", wigpath), ..., min.gapwidth = 1000)
+  wigpath), bz2 = grepl("\\\\.bz2$", wigpath), min.gapwidth = 1000)
 }
 \arguments{
+\item{wigpath}{path to Wig}
+
 \item{fftpath}{path to ffTrack .rds that will be created by this (by default .bw is replaced by .rds)}
 
 \item{chrsub}{whether to sub out 'chr' in seqnames / seqlevels of Wig object}
 
 \item{verbose}{logical flag}
 
-\item{buffer}{integer size of how big of a buffer to use when transferring data from Wig to ffTrack object}
+\item{buffer}{integer size of how big of a buffer to use when transferring data from Wig to ffTrack object; number of bases to access at a time}
 
-\item{skip.sweep}{logical flag (default FALSE) if TRUE will skip the sweep of "region" for the portions that have non-NA values}
+\item{skip.sweep}{logical flag (default FALSE) if TRUE will skip the sweep of "region" for the portions that have non-NA values; if TRUE will not sweep for covered region, just make a whole genome file or a file across provided regions}
+
+\item{seqlengths}{info}
 
 \item{vmode}{character specifyhing vmode to use for encoding (by default double)}
 
-\item{min.gapwidth}{minimum gap-width with which to merge reference adjacent intervals, this will mildly increase the file size but reduce the range complexity of the GRanges object}
+\item{gz}{stuff}
 
-\item{bwpath}{path to Wig}
+\item{bz2}{stuff}
 
-\item{region}{GRanges specifying regions to limit ffTrack computation to (default is whole genome, ie seqnames of Wig file)}
-
-\item{resume}{logical flag specifying whether to resume the populatino of an already existing ffTrack object (default FALSE)}
+\item{min.gapwidth}{minimum gap-width with which to merge reference adjacent intervals, this will mildly increase the file size but reduce the range complexity of the GRanges object; flank (to reduce the range complexity of the ffdata skeleton, but increase file size)}
 }
 \value{
 ffTrack object corresponding to the data in the Wig file

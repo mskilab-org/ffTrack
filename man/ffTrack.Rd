@@ -26,19 +26,18 @@ ffTrack(gr, file.name, default.val = NA, overwrite = FALSE, levels = NULL,
 ffTrack object
 }
 \description{
-Constructs new \code{ffTrack} for off-line storage of genomic data.  Allocates memory to store one of several data "modes"
+Constructs new \code{ffTrack} for offline storage of genomic data.  Allocates memory to store one of several data "modes"
 (e.g. \code{numeric}, \code{byte}, \code{character}) data types across a fixed interval set (\code{GRanges}).
-Useful for numeric (e.g. conservation track)
-or character (e.g. human genome sequence) data. Physical instantiation will result in the creation of one or more
-"heavy" .ffData files and a lightweight .rds pointer which is the ffTrack object that is returned by this function.  That
-object can be read or written to using GRanges indices.
+Useful for numeric (e.g. conservation track) or character (e.g. human genome sequence) data. 
+Physical instantiation will result in the creation of one or more "heavy" *.ffData files and a lightweight *.rds pointer 
+which is the ffTrack object that is returned by this function.  That object can be read or written to using GRanges indices.
 
 Initialization requires (1) a filename (2) a set of GRanges corresponding to the "space"
 (3) a vmode (one of the following:
 \itemize{
 \item boolean (1 bit logical)
 \item logical (2 bit logical + NA)
-\item quad (2 bit unsigned integer without NA)
+\item quad (2 bit unsigned integer without NA)   (NOTE: quad' allows efficient storage of genomic data as an 'A','T','G','C' factor. See 'ff' documentation.)
 \item nibble (4 bit unsigned integer without NA)
 \item byte (8 bit signed integer with NA)
 \item ubyte (8 bit unsigned integer without NA)
@@ -47,11 +46,9 @@ Initialization requires (1) a filename (2) a set of GRanges corresponding to the
 \item integer (32 bit signed integer with NA)
 \item single (32 bit float)
 \item double (64 bit float)
-\item complex (2 x 64 bit float),
 \item raw (8 bit unsigned char)
-\item character (character)
 }
-Initialization will create two files (1) an .rds object meta data (2) .ffdata binary ff object
+Initialization will create two files (1) an .rds object meta data (2) *.ffdata binary ff object
 These files should have static paths (i.e. should not be moved outside of R) - otherwise will break.
 However the object will still be functional if the .rds file is moved to another location and loaded
 from there.

@@ -38,9 +38,9 @@ context('ffTrack operations')
 ### fftab
 ### match.bs
 
-system("mkdir /home/travis/build/mskilab/ffTrack/tmp")
+system("mkdir tmp")
 
-system("mkdir /home/travis/build/mskilab/ffTrack/tmp2")
+system("mkdir tmp2")
 
 
 

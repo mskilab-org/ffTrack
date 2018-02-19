@@ -38,146 +38,17 @@ context('ffTrack operations')
 ### fftab
 ### match.bs
 
-system("mkdir tmp")
+#system("mkdir tmp")
 
-system("mkdir tmp2")
-
-
+##system("mkdir tmp2")
 
 
-test_that('ffTrack', {
-    
-    expect_error(ffTrack(vmode = 'error')) ## Error: Incorrect argument "vmode". Allowable modes are boolean, byte, character, complex, double, integer, logical, nibble, quad, raw, short, single, ubyte, ushort
-    expect_error(ffTrack(gr = GRanges()))  ## Error: Trying to create ffTrack with empty GRanges
-    ## check 'vmode'
-    ## boolean (1 bit logical)
-    ## logical (2 bit logical + NA)
-    ## quad (2 bit unsigned integer without NA)
-    ## nibble (4 bit unsigned integer without NA)
-    ## byte (8 bit signed integer with NA)
-    ## ubyte (8 bit unsigned integer without NA)
-    ## short (16 bit signed integer with NA)
-    ## ushort (16 bit unsigned integer without NA)
-    ## integer (32 bit signed integer with NA)
-    ## single (32 bit float)
-    ## double (64 bit float)
-    ## raw (8 bit unsigned char)
-    gr = GRanges('1:10000-20000')
-    expect_error(ffTrack(gr, file.name = 'test.boolean.rds', overwrite = TRUE, vmode = 'boolean'), NA)  ## trick to check code doesn't throw error
-    expect_error(ffTrack(gr, file.name = 'test.logical.rds', overwrite = TRUE, vmode = 'logical'), NA)
-    expect_error(ffTrack(gr, file.name = 'test.quad.rds', overwrite = TRUE, vmode = 'quad'), NA)
-    expect_error(ffTrack(gr, file.name = 'test.nibble.rds', overwrite = TRUE, vmode = 'nibble'), NA)
-    expect_error(ffTrack(gr, file.name = 'test.byte.rds', overwrite = TRUE, vmode = 'byte'), NA)
-    expect_error(ffTrack(gr, file.name = 'test.ubyte.rds', overwrite = TRUE, vmode = 'ubyte'), NA)
-    expect_error(ffTrack(gr, file.name = 'test.short.rds', overwrite = TRUE, vmode = 'short'), NA)
-    expect_error(ffTrack(gr, file.name = 'test.ushort.rds', overwrite = TRUE, vmode = 'ushort'), NA)
-    expect_error(ffTrack(gr, file.name = 'test.integer.rds', overwrite = TRUE, vmode = 'integer'), NA)
-    expect_error(ffTrack(gr, file.name = 'test.single.rds', overwrite = TRUE, vmode = 'single'), NA)
-    expect_error(ffTrack(gr, file.name = 'test.double.rds', overwrite = TRUE, vmode = 'double'), NA)
-    expect_error(ffTrack(gr, file.name = 'test.raw.rds', overwrite = TRUE, vmode = 'raw'), NA)
-    expect_error(ffTrack(gr, file.name = 'test.complex.rds', overwrite = TRUE, vmode = 'complex'))  ## Message: vmode 'complex' not implemented
-    expect_error(ffTrack(gr, file.name = 'test.character.rds', overwrite = TRUE, vmode = 'character')) ## Message: vmode 'character' not implemented
-    ## test ffTrack methods
-    testff = ffTrack(gr, file.name = 'test.boolean.rds', overwrite = TRUE, vmode = 'boolean')
-    ## if (!(vmode[1] %in% MODES)){
-    expect_error(ffTrack(gr, file.name = 'test.failure.rds', overwrite = TRUE, vmode = 'failure'))
-    ## if (length(gr) == 0 | !any(width(gr) > 0))
-    expect_error(ffTrack(GRanges(), file.name = 'test.empty.rds', overwrite = TRUE, vmode = 'boolean'))
-    ## if (!grepl('\\.rds$',  file.name) & !grepl('\\.RDS$',  file.name)){
-    expect_error(ffTrack(gr, file.name = 'test.empty', overwrite = TRUE, vmode = 'boolean'), NA)
-    ## if ((file.exists(file.name) | file.exists(ff.filename)) & !overwrite){
-    expect_error(ffTrack(gr, file.name = 'test.boolean.rds', overwrite = FALSE, vmode = 'boolean'))
-    ## ISSUE
-    ## 'complex', 'character' not implemented
-    ##
-    ## > (ffTrack(gr, file.name = 'test.character.rds', overwrite = TRUE, vmode = 'character'))
-    ## Error in ff(default.val, length = pmin(len, .Object@.blocksize), vmode = .Object@.vmode,  : 
-    ##   vmode 'character' not implemented
-    ## 
-    ## if (verbose){
-    foobar = ffTrack(gr, file.name = 'test.boolean.rds', overwrite = TRUE, vmode = 'boolean', verbose=TRUE)
-    ## show
-    expect_equal(basename(filename(foobar))[1], 'test.boolean.ffdata')
-    expect_equal(basename(filename(foobar))[2], 'test.boolean.rds')
-    ## 
-    ## size
-    expect_equal(size(testff), 0.001252)
-    ## vmode 
-    expect_match(vmode(testff), 'boolean')
-    ## len
-    expect_equal(ffTrack::length(testff), 10001)
-    ## levels
-    expect_equal(levels(testff), NA)
-    ## set_levels
-    expect_error(set_levels(testff))
-    ## ffranges
-    expect_true(is(ffranges(testff), 'GRanges'))
-    expect_equal(width(ffranges(testff)), 10001)
-    expect_equal(ffranges(testff)$ix.s, 1)
-    ## filename
-    expect_equal(basename(filename(testff)[1]), 'test.boolean.ffdata')
-    expect_equal(basename(filename(testff)[2]), 'test.boolean.rds')    
-    ## cp 
-    expect_error(cp(testff))
-    ####### expect_error(cp(testff, '/home/travis/build/mskilab/ffTrack/ffTrack.Rcheck/tests/'), NA)  ## check function works without error
-    ####### expect_true(file.exists('/home/travis/build/mskilab/ffTrack/ffTrack.Rcheck/tests/test.boolean.ffdata'))
-    ####### expect_true(file.exists('/home/travis/build/mskilab/ffTrack/ffTrack.Rcheck/tests/test.boolean.rds'))
-    ## ffseqlengths
-    expect_equal(as.logical(ffseqlengths(testff)), NA)
-    ## ffseqinfo
-    expect_equal(as.numeric(seqnames(ffseqinfo(testff))), 1)
-    expect_equal(as.logical(seqlengths(ffseqinfo(testff))), NA)
-    expect_equal(as.data.frame(ffseqinfo(testff))$isCircular, NA)
-    ## ffseqlevels
-    expect_equal(as.numeric(ffseqlevels(testff)), 1)
-    ## writeable
-    expect_true(as.logical(writeable(testff)))
-    ## writeable_status
-    ## if (!is.logical(value))
-    expect_error(writeable_status(testff, 'false'))
-    ## default
-    testff = ffTrack(gr, file.name = 'test.boolean.rds', overwrite = TRUE, vmode = 'boolean')
-    trueff = writeable_status(testff, TRUE)
-    falseff = writeable_status(testff, FALSE)
-    ## this is wrong
-    expect_true(as.logical(writeable(trueff)))
-    expect_true(as.logical(writeable(falseff)))
-    ## mv
-    testmv = ffTrack(gr, file.name = 'test.mv.rds', overwrite = TRUE, vmode = 'boolean')
-    expect_error(mv(testmv))    ## Error in mv(testff) : argument "path" is missing, with no default
-    ##                            
-    ## expect_error(mv(testmv, '/home/travis/build/mskilab/ffTrack/tmp2/')) ## Error: One or more of the target paths exist, rerun with overwrite = FALSE to overwrite
-    ## 
-    ## check this runs
-    ## mv(testmv, '/home/travis/build/mskilab/ffTrack/tmp2/', overwrite = TRUE)
-    ##
-    print('check file.exists() ')
-    print(file.exists('/home/travis/build/mskilab/ffTrack/tmp2/test.mv.ffdata'))
-    print('check file.exists() ')
-    print(file.exists('/home/travis/build/mskilab/ffTrack/tmp2/test.mv.rds'))
-    ##
-    ####### expect_error(mv(testff, '/path/does/not/exist'))
-    ####### dir.create('/home/travis/build/mskilab/ffTrack/tmp/')
-    ####### mv(testff, '/home/travis/build/mskilab/ffTrack/tmp/')
-    ####### expect_true(file.exists('/home/travis/build/mskilab/ffTrack/tmp/test.boolean.ffdata'))
-    ####### expect_true(file.exists('/home/travis/build/mskilab/ffTrack/tmp/test.boolean.rds'))
-    ####### expect_false(file.exists('/home/travis/build/mskilab/ffTrack/tests/testthat/test.boolean.ffdata'))
-    ####### expect_false(file.exists('/home/travis/build/mskilab/ffTrack/tests/testthat/test.boolean.rds'))   
-    ## del 
-    test2 = ffTrack(gr, file.name = 'test2.boolean.rds', overwrite = TRUE, vmode = 'boolean')
-    del(test2)
-    print('check file.exists() ')
-    print(file.exists('/home/travis/build/mskilab/ffTrack/test2.boolean.ffdata'))
-    print('check file.exists() ')
-    print(file.exists('/home/travis/build/mskilab/ffTrack/test2.boolean.rds'))
-    
-})
 
 
-print('/home/travis/build/mskilab/ffTrack/tmp2/:   ')
-print(list.files('/home/travis/build/mskilab/ffTrack/tmp2/'))
-print('/home/travis/build/mskilab/ffTrack/:   ')
-print(list.files("/home/travis/build/mskilab/ffTrack/"))
+## print('/home/travis/build/mskilab/ffTrack/tmp2/:   ')
+## print(list.files('/home/travis/build/mskilab/ffTrack/tmp2/'))
+## print('/home/travis/build/mskilab/ffTrack/:   ')
+## print(list.files("/home/travis/build/mskilab/ffTrack/"))
 
 ### [<-
 

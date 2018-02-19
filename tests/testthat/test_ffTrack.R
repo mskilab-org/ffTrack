@@ -45,83 +45,6 @@ context('ffTrack operations')
 
 
 
-test_that('ffTrack', {
-    
-    expect_error(ffTrack(vmode = 'error')) ## Error: Incorrect argument "vmode". Allowable modes are boolean, byte, character, complex, double, integer, logical, nibble, quad, raw, short, single, ubyte, ushort
-    expect_error(ffTrack(gr = GRanges()))  ## Error: Trying to create ffTrack with empty GRanges
-    ## check 'vmode'
-    ## boolean (1 bit logical)
-    ## logical (2 bit logical + NA)
-    ## quad (2 bit unsigned integer without NA)
-    ## nibble (4 bit unsigned integer without NA)
-    ## byte (8 bit signed integer with NA)
-    ## ubyte (8 bit unsigned integer without NA)
-    ## short (16 bit signed integer with NA)
-    ## ushort (16 bit unsigned integer without NA)
-    ## integer (32 bit signed integer with NA)
-    ## single (32 bit float)
-    ## double (64 bit float)
-    ## raw (8 bit unsigned char)
-    gr = GRanges('1:10000-20000')
-    expect_error(ffTrack(gr, file.name = 'test.boolean.rds', overwrite = TRUE, vmode = 'boolean'), NA)  ## trick to check code doesn't throw error
-    expect_error(ffTrack(gr, file.name = 'test.logical.rds', overwrite = TRUE, vmode = 'logical'), NA)
-    expect_error(ffTrack(gr, file.name = 'test.quad.rds', overwrite = TRUE, vmode = 'quad'), NA)
-    expect_error(ffTrack(gr, file.name = 'test.nibble.rds', overwrite = TRUE, vmode = 'nibble'), NA)
-    expect_error(ffTrack(gr, file.name = 'test.byte.rds', overwrite = TRUE, vmode = 'byte'), NA)
-    expect_error(ffTrack(gr, file.name = 'test.ubyte.rds', overwrite = TRUE, vmode = 'ubyte'), NA)
-    expect_error(ffTrack(gr, file.name = 'test.short.rds', overwrite = TRUE, vmode = 'short'), NA)
-    expect_error(ffTrack(gr, file.name = 'test.ushort.rds', overwrite = TRUE, vmode = 'ushort'), NA)
-    expect_error(ffTrack(gr, file.name = 'test.integer.rds', overwrite = TRUE, vmode = 'integer'), NA)
-    expect_error(ffTrack(gr, file.name = 'test.single.rds', overwrite = TRUE, vmode = 'single'), NA)
-    expect_error(ffTrack(gr, file.name = 'test.double.rds', overwrite = TRUE, vmode = 'double'), NA)
-    expect_error(ffTrack(gr, file.name = 'test.raw.rds', overwrite = TRUE, vmode = 'raw'), NA)
-    expect_error(ffTrack(gr, file.name = 'test.complex.rds', overwrite = TRUE, vmode = 'complex'))  ## Message: vmode 'complex' not implemented
-    expect_error(ffTrack(gr, file.name = 'test.character.rds', overwrite = TRUE, vmode = 'character')) ## Message: vmode 'character' not implemented
-    ## test ffTrack methods
-    testff = ffTrack(gr, file.name = 'test.boolean.rds', overwrite = TRUE, vmode = 'boolean')
-    ## if (!(vmode[1] %in% MODES)){
-    expect_error(ffTrack(gr, file.name = 'test.failure.rds', overwrite = TRUE, vmode = 'failure'))
-    ## if (length(gr) == 0 | !any(width(gr) > 0))
-    expect_error(ffTrack(GRanges(), file.name = 'test.empty.rds', overwrite = TRUE, vmode = 'boolean'))
-    ## if (!grepl('\\.rds$',  file.name) & !grepl('\\.RDS$',  file.name)){
-    expect_error(ffTrack(gr, file.name = 'test.empty', overwrite = TRUE, vmode = 'boolean'), NA)
-    ## if ((file.exists(file.name) | file.exists(ff.filename)) & !overwrite){
-    expect_error(ffTrack(gr, file.name = 'test.boolean.rds', overwrite = FALSE, vmode = 'boolean'))
-    ## ISSUE
-    ## 'complex', 'character' not implemented
-    ##
-    ## > (ffTrack(gr, file.name = 'test.character.rds', overwrite = TRUE, vmode = 'character'))
-    ## Error in ff(default.val, length = pmin(len, .Object@.blocksize), vmode = .Object@.vmode,  : 
-    ##   vmode 'character' not implemented
-    ## 
-    ## if (verbose){
-    foobar = ffTrack(gr, file.name = 'test.boolean.rds', overwrite = TRUE, vmode = 'boolean', verbose=TRUE)
-    ## show
-    expect_equal(basename(filename(foobar))[1], 'test.boolean.ffdata')
-    expect_equal(basename(filename(foobar))[2], 'test.boolean.rds')
-    ## 
-    ## size
-    expect_equal(size(testff), 0.001252)
-    ## vmode 
-    expect_match(vmode(testff), 'boolean')
-    ## len
-    ##expect_equal(ffTrack::length(testff), 10001)
-    ## levels
-    expect_equal(levels(testff), NA)
-    ## set_levels
-    expect_error(set_levels(testff))
-    ## ffranges
-    expect_true(is(ffTrack::ranges(testff), 'GRanges'))
-    expect_equal(width(ffTrack::ranges(testff)), 10001)
-    expect_equal(ffTrack::ranges(testff)$ix.s, 1)
-    ## filename
-    expect_equal(basename(filename(testff)[1]), 'test.boolean.ffdata')
-    expect_equal(basename(filename(testff)[2]), 'test.boolean.rds')    
-    ## cp 
-
-    
-})
-
 
 ## print('/home/travis/build/mskilab/ffTrack/tmp2/:   ')
 ## print(list.files('/home/travis/build/mskilab/ffTrack/tmp2/'))
@@ -233,6 +156,8 @@ test_that('get_seq', {
 
 
 
+
+
 ### wig2fft
 # test_that('wig2fft', {
 #
@@ -272,7 +197,7 @@ test_that('get_seq', {
 
 
 
-test_that('seq2fft', {
+test_that('seq2fft works', {
 
     ## default
     hg19 = getBSgenome('BSgenome.Hsapiens.UCSC.hg19')
@@ -286,7 +211,60 @@ test_that('seq2fft', {
     ### Error in is(fftpath, "ffTrack") : object 'fftpath' not found
     expect_error(seq2fft(hg19))
 
+})
 
+
+
+
+test_that('fftab works', {
+
+    ## default
+    gr = GRanges('1:10000-20000')
+    gr2 = GRanges(1, IRanges(c(1,9), c(6,14)), strand=c('+','-'), seqinfo=Seqinfo("1", 25), field=c(1,2))
+    testff = ffTrack(gr, file.name = 'test.boolean.rds', overwrite = TRUE, vmode = 'boolean') 
+    integer = GRanges(1, IRanges(c(3,7,13), c(5,9,16)), strand=c('+','-','-'), seqinfo=Seqinfo("1", 25), name=c("A","B","C"))
+    foo1 = fftab(testff, integer)
+    foo2 = fftab(testff, gr2)
+    expect_true(is(foo1, 'GRanges'))
+    expect_equal(length(foo1), 3)
+    expect_equal(foo1$name[3], 'C')
+    ## signature
+    foosig = fftab(testff, integer, signatures=list(3, 9, 27))
+    expect_equal(length(foosig), 3)
+    expect_equal(unique(foosig$sig1), 0)
+    expect_equal(unique(foosig$sig2), 0)
+    expect_equal(unique(foosig$sig3), 0)
+    ## FUN
+    expect_error(fftab(testff, integer, FUN=abs))   ## Error in FUN(dat, na.rm = na.rm) : 2 arguments passed to 'abs' which requires 1
+    func1 = fftab(testff, integer, FUN=mean) 
+    func2 = fftab(testff, integer, FUN=rep) 
+    expect_equal(length(func1), 3)
+    expect_equal(unique(as.logical(func1$score)), NA)  ## nothing calculated; document this a bit more
+    expect_equal(length(func2), 3)
+    expect_equal(unique(as.logical(func2$score)), NA)
+    ## grep 
+    ## mc.cores 
+    expect_equal(length(fftab(testff, integer, mc.cores=2)), 3)
+    expect_equal(unique(fftab(testff, integer, mc.cores=2)$score), 0)
+    ## chunksize 
+    expect_equal(length(fftab(testff, integer, chunksize=2)), 3)
+    expect_equal(unique(fftab(testff, integer, chunksize=2)$score), 0)
+    ## verbose 
+    fftab(testff, integer, verbose=FALSE)
+    expect_equal(length(fftab(testff, integer, verbose=FALSE)), 3)
+    expect_equal(unique(fftab(testff, integer, verbose=FALSE)$score), 0)
+    ## na.rm 
+    footrue = fftab(testff, integer, na.rm=TRUE)
+    foofalse = fftab(testff, integer, na.rm=FALSE)
+    expect_equal(unique(footrue$score), 0)
+    expect_equal(unique(as.logical(foofalse$score)), NA)
+    ## errors
+    ## if (!is(ff, 'ffTrack') & !is(ff, 'RleList')){
+    expect_error(fftab(GRanges(), integer))  ## Error in fftab(GRanges(), intergr) : Error: Input ff should be ffTrack or RleList
+    ##  if (length(intervals)==0){
+    expect_error(fftab(testff, GRanges())) 
+    ##  if (!is.list(signatures)){
+    expect_error(fftab(testff, integer, signatures=matrix())) ##  Error: Signatures must be a named list of arbitrary length character or length 1 or 2 numeric vectors
 
 })
 
@@ -295,77 +273,6 @@ test_that('seq2fft', {
 
 
 
-
-
-
-
-## fftab
-
-## test_that('fftab', {
-## 
-##     ## default
-##     gr = GRanges('1:10000-20000')
-##     gr2 = GRanges(1, IRanges(c(1,9), c(6,14)), strand=c('+','-'), seqinfo=Seqinfo("1", 25), field=c(1,2))
-##     testff = ffTrack(gr, file.name = 'test.boolean.rds', overwrite = TRUE, vmode = 'boolean')  ## ffTrack object of vmode boolean of ffdata filename(s) /Users/ebiederstedt/ffTrack/test.boolean.ffdata comprising 0M of disk space and 1 GRanges: 
-##    integer = GRanges(1, IRanges(c(3,7,13), c(5,9,16)), strand=c('+','-','-'), seqinfo=Seqinfo("1", 25), name=c("A","B","C"))
-##    foo1 = fftab(testff, integer)
-##    foo2 = fftab(testff, gr2)
-##    expect_true(is(foo1, 'GRanges'))
-##    expect_equal(length(foo1), 3)
-##    expect_equal(foo1$name[3], 'C')
-##    ## signature
-##    foosig = fftab(testff, intergr, signatures=list(3, 9, 27))
-##    expect_equal(length(foosig), 3)
-##    expect_equal(unique(foosig$sig1), 0)
-##    expect_equal(unique(foosig$sig2), 0)
-##    expect_equal(unique(foosig$sig3), 0)
-##    ## FUN
-##    ## should write better error message
-##    ## foo = fftab(testff, intergr, FUN=abs)  ## Error in FUN(dat, na.rm = na.rm) : 2 arguments passed to 'abs' which requires 1
-##    func1 = fftab(testff, intergr, FUN=mean) 
-##    func2 = fftab(testff, intergr, FUN=rep) 
-##    expect_equal(length(func1), 3)
-##    expect_equal(unique(as.logical(func1$score)), NA)  ## nothing calculated; document this a bit more
-##    expect_equal(length(func2), 3)
-##    expect_equal(unique(as.logical(func2$score)), NA)
-##    ## grep 
-##    ## mc.cores 
-##    expect_equal(length(fftab(testff, intergr, mc.cores=2)), 3)
-##    expect_equal(unique(fftab(testff, intergr, mc.cores=2)$score), 0)
-##    ## chunksize 
-##    expect_equal(length(fftab(testff, intergr, chunksize=2)), 3)
-##    expect_equal(unique(fftab(testff, intergr, chunksize=2)$score), 0)
-##    ## verbose 
-##    fftab(testff, intergr, verbose=FALSE)
-##    expect_equal(length(fftab(testff, intergr, verbose=FALSE)), 3)
-##    expect_equal(unique(fftab(testff, intergr, verbose=FALSE)$score), 0)
-##    ## na.rm 
-##    footrue = fftab(testff, intergr, na.rm=TRUE)
-##    foofalse = fftab(testff, intergr, na.rm=FALSE)
-##    expect_equal(unique(footrue$score), 0)
-##    expect_equal(unique(as.logical(foofalse$score)), NA)
-##    ## errors
-##    ## if (!is(ff, 'ffTrack') & !is(ff, 'RleList')){
-##    expect_error(fftab(GRanges(), intergr))  ## Error in fftab(GRanges(), intergr) : Error: Input ff should be ffTrack or RleList
-##    ##  if (length(intervals)==0){
-##    expect_error(fftab(testff, GRanges())) 
-##    ##  if (!is.list(signatures)){
-##    expect_error(fftab(testff, intergr, signatures=matrix())) ##  Error: Signatures must be a named list of arbitrary length character or length 1 or 2 numeric vectors
-##
-##})
-
-
-
-
-
-
-### match.bs
-
-## query Query
-## dict Dictionary
-## midpoint boolean Flag for output the coordinates of the match as the location, where the midpoint of the dict string matches the given query. Default FALSE
-## a vector of indices of length width(query) that contains indices of the (starting) dictionary in the query string
-##
 
 
 

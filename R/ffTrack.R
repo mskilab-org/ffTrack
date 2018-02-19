@@ -362,6 +362,53 @@ setMethod('writeable<-', 'ffTrack', function(.Object, value)
           })
 
 
+
+#if (!isGeneric('seqlengths'))
+#  setGeneric('seqlengths', function(x) standardGeneric('seqlengths'))
+
+#' @name seqlengths
+#' @title seqlengths
+#' @description
+#'
+#' size of ffTrack object
+#'
+#' @export
+#' @importFrom GenomeInfoDb seqlengths seqinfo seqlevels
+#' @author Marcin Imielinski
+setMethod('seqlengths', 'ffTrack', function(x)
+          seqlengths(x@.gr))
+
+#if (!isGeneric('seqinfo'))
+#  setGeneric('seqinfo', function(x) standardGeneric('seqinfo'))
+
+#' @name seqinfo
+#' @title seqinfo
+#' @description
+#'
+#' size of ffTrack object
+#'
+#' @export
+#' @importFrom GenomeInfoDb seqlengths seqinfo seqlevels
+#' @author Marcin Imielinski
+setMethod('seqinfo', 'ffTrack', function(x)
+          seqinfo(x@.gr))
+
+#if (!isGeneric('seqlevels'))
+# setGeneric('seqlevels', function(x) standardGeneric('seqlevels'))
+
+#' @name seqlevels
+#' @title seqlevels of ffTrack object
+#' @description
+#' seqlevels of ffTrack object
+#' @importFrom GenomeInfoDb seqlengths seqinfo seqlevels
+#' @export
+#' @author Marcin Imielinski
+setMethod('seqlevels', 'ffTrack', function(x)
+          seqlevels(x@.gr))
+
+
+
+
 #' @name [
 #' @title [
 #' @description
@@ -1391,7 +1438,8 @@ seq2fft = function(seq, ## BSGenome object, ffTrack object representing genomic 
 #' @export
 fftab = function(ff, intervals, signatures = NULL, FUN = sum, grep = FALSE, mc.cores = 1, chunksize = 1e6, verbose = TRUE, na.rm = TRUE)
     {
-id = ix = NULL ## NOTE fix
+
+    id = ix = NULL ## NOTE fix
         if (!is(ff, 'ffTrack') & !is(ff, 'RleList'))
             stop('Input ff should be ffTrack or RleList\n')
 
@@ -1750,72 +1798,7 @@ get_seq = function(hg, gr, unlist = T, mc.cores = 1, mc.chunks = mc.cores, add.c
     }
 }
 
-#' Identify matches between query and dictionary
-#'
-#' Wrapper around matchPdict to identify matches between a query
-#' string query and dictionary dict (both BString objects or subclasses)
-#'
-#' @param query Query XStringSet / DNAStringSet 
-#' @param dict Dictionary
-#' @param midpoint Flag for output the coordinates of the match as the location,
-#'   where the midpoint of the dict string matches the given query. Default FALSE
-#' @return a vector of indices of length width(query) that contains
-#' indices of the (starting) dictionary in the query string
-match.bs = function(query, dict, midpoint = FALSE)
-{
-  names(dict) = as.character(1:length(dict))
-
-  tmp = sort(unlist(Biostrings::matchPDict(dict, query)))
-  out = rep(NA, length(query))
-
-  if (!midpoint)
-    out[start(tmp)] = as.numeric(names(tmp))
-  else
-    out[floor((start(tmp)+end(tmp))/2)] = as.numeric(names(tmp))
-
-  return(out)
-}
 
 
-#if (!isGeneric('seqlengths'))
-#  setGeneric('seqlengths', function(x) standardGeneric('seqlengths'))
 
-#' @name seqlengths
-#' @title seqlengths
-#' @description
-#'
-#' size of ffTrack object
-#'
-#' @export
-#' @importFrom GenomeInfoDb seqlengths seqinfo seqlevels
-#' @author Marcin Imielinski
-setMethod('seqlengths', 'ffTrack', function(x)
-          seqlengths(x@.gr))
 
-#if (!isGeneric('seqinfo'))
-#  setGeneric('seqinfo', function(x) standardGeneric('seqinfo'))
-
-#' @name seqinfo
-#' @title seqinfo
-#' @description
-#'
-#' size of ffTrack object
-#'
-#' @export
-#' @importFrom GenomeInfoDb seqlengths seqinfo seqlevels
-#' @author Marcin Imielinski
-setMethod('seqinfo', 'ffTrack', function(x)
-          seqinfo(x@.gr))
-
-#if (!isGeneric('seqlevels'))
-# setGeneric('seqlevels', function(x) standardGeneric('seqlevels'))
-
-#' @name seqlevels
-#' @title seqlevels of ffTrack object
-#' @description
-#' seqlevels of ffTrack object
-#' @importFrom GenomeInfoDb seqlengths seqinfo seqlevels
-#' @export
-#' @author Marcin Imielinski
-setMethod('seqlevels', 'ffTrack', function(x)
-          seqlevels(x@.gr))

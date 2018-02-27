@@ -642,11 +642,11 @@ setMethod('[<-', 'ffTrack', function(x, i, value, op = NULL, raw = TRUE, full = 
         if (length(value) != sum(width(i))){
             stop('Error: if full = TRUE then value must be of length = sum(width(ranges))')
         }
-    }else if (is.list(value)){
+    } else if (is.list(value)){
         if (any(width(i) != sapply(value, length))){
            stop('Error: Mismatch between widths of input GRanges and value list')
         }
-    }else{
+    } else{
         if (length(value) != length(i) & length(value) != 1){
             stop('Error: value must be list or vector of same length as GRanges input "i", or if full = TRUE a vector of same length as sum(width(granges))')
         }
@@ -660,7 +660,7 @@ setMethod('[<-', 'ffTrack', function(x, i, value, op = NULL, raw = TRUE, full = 
 
     if (is.list(value) | full){
         values = unlist(value)
-    }else{
+    } else{
         values = rep(value, width(i))
     }
 
@@ -977,6 +977,7 @@ get_seq = function(hg, gr, unlist = TRUE, mc.cores = 1, mc.chunks = mc.cores,
 #' @param resume logical flag specifying whether to resume the populatino of an already existing ffTrack object (default FALSE)
 #' @param min.gapwidth  minimum gap-width with which to merge reference adjacent intervals, this will mildly increase the file size but reduce the range complexity of the GRanges object; flank (to reduce the range complexity of the ffdata skeleton, but increase file size)
 #' @param overwrite boolean Flag whether to overwrite existing in the filename
+#' @param mc.cores integer Number of cores to use via parallel::mclapply
 #' @return ffTrack object corresponding to the data in the BigWig file
 #' @export
 #' @author Marcin Imielinski
@@ -990,10 +991,10 @@ bw2fft = function(bwpath,
     vmode = 'double',
     resume = FALSE,  ## in case something went wrong can update an existing file
     min.gapwidth = 1e3, ## flank (to reduce the range complexity of the ffdata skeleton, but increase file size)
-    overwrite = FALSE
+    overwrite = FALSE,
+    mc.cores = 1
     )
 {
-    mc.cores = 1;
 
     if (!is.null(region)){
         if (chrsub){

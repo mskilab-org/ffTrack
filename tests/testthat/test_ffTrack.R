@@ -233,6 +233,8 @@ test_that('bw2fft', {
     foobar = bw2fft(smallbw, mc.cores=2, overwrite = TRUE, verbose=TRUE)
     expect_equal(basename(filename(foobar))[1], 'output.ffdata')
     expect_equal(basename(filename(foobar))[2], 'output.rds')
+    expect_error(bw2fft(smallbw, region = GRanges('1:500-600'), mc.cores=2, overwrite = TRUE, verbose=TRUE)
+)
 
 })
 
@@ -243,9 +245,11 @@ test_that('bw2fft', {
 
 
 ### wig2fft
-# test_that('wig2fft', {
-#
-# })
+test_that('wig2fft', {
+
+    expect_error(wig2fft('fixedStep.wig'))
+    expect_error(wig2fft('gc200.wig'))
+})
 
 
 

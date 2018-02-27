@@ -1330,7 +1330,6 @@ seq2fft = function(seq, fftpath, nnuc = 0, dict = NULL, chrsub = TRUE, neg = FAL
     context = FALSE
     
     if (is.null(dict)){
-
         DNA_BASES = c('A', 'G', 'C', 'T', 'N')
         dict = Biostrings::DNAStringSet(Biostrings::mkAllStrings(DNA_BASES, nnuc*2 + 1))
         context = TRUE
@@ -1342,12 +1341,12 @@ seq2fft = function(seq, fftpath, nnuc = 0, dict = NULL, chrsub = TRUE, neg = FAL
 
     if (is(fftpath, 'ffTrack')){
       
-        if (verbose){
-            cat(sprintf('Populating ffTrack with filename %s with %s MB of sequence\n', ff::filename(fftpath)['rds'], round(sum(as.numeric(width(region)))/1e6, 2)))
-        }
+        ##if (verbose){
+        ##    cat(sprintf('Populating ffTrack with filename %s with %s MB of sequence\n', ff::filename(fftpath)['rds'], round(sum(as.numeric(width(region)))/1e6, 2)))
+        ##}
 
         fft = fftpath ## append to existing fftpath
-    } else{
+    }else{
 
         if (verbose){
             cat(sprintf('Making ffTrack for genome %s spanning %s MB of sequence\n', attributes(seq)$seqs_pkgname, round(sum(as.numeric(width(region)))/1e6, 2)))

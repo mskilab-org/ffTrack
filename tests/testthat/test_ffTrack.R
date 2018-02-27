@@ -36,7 +36,6 @@ context('ffTrack operations')
 ### wig2fft
 ### seq2fft
 ### fftab
-### match.bs
 
 #system("mkdir tmp")
 
@@ -228,9 +227,14 @@ test_that('get_seq', {
 
 
 ### bw2fft
-# test_that('bw2fft', {
-# 
-# })
+test_that('bw2fft', {
+
+    smallbw = 'output.bw'
+    foobar = bw2fft(smallbw, mc.cores=2, overwrite = TRUE, verbose=TRUE)
+    expect_equal(basename(filename(foobar))[1], 'output.ffdata')
+    expect_equal(basename(filename(foobar))[2], 'output.rds')
+
+})
 
 
 

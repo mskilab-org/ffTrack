@@ -1044,9 +1044,9 @@ bw2fft = function(bwpath,
         fft = ffTrack(covered, fftpath, overwrite=overwrite)
     }
 
-    if (verbose){
-        cat(sprintf('\t.ffdata file %s has size %sM\n', ff::filename(fft)['ff'], round(file.info(ff::filename(fft)['ff'])$size/1e6, 2)))
-    }
+    ## if (verbose){
+    ##     cat(sprintf('\t.ffdata file %s has size %sM\n', ff::filename(fft)['ff'], round(file.info(ff::filename(fft)['ff'])$size/1e6, 2)))
+    ## }
 
     covered.tile = gr.tile(covered, buffer)
 

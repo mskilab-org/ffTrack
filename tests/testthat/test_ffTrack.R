@@ -103,12 +103,16 @@ test_that('ffTrack', {
     expect_equal(ffTrack::size(testff), 0.001252)
     ## vmode 
     expect_match(ffTrack::vmode(testff), 'boolean')
-    ## len
-    ##expect_equal(ffTrack::length(testff), 10001)
+    ## length
+    expect_equal(length(foobar), 10001)
     ## levels
-    ## expect_equal(ffTrack::levels(testff), NA)
-    ## set_levels
-    ## expect_error(ffTrack::set_levels(testff))
+    ##
+    expect_equal(levels(foobar), NA)
+    ## setMethod('levels<-', 'ffTrack', function(x, value){
+    ## 
+    expect_error(levels(foobar), NA) ## checks runs
+    levels(foobar) = 'chr2'
+    expect_equal(levels(foobar), 'chr2')
     ## ffranges
     expect_true(is(ffTrack::ranges(testff), 'GRanges'))
     expect_equal(width(ffTrack::ranges(testff)), 10001)

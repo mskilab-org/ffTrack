@@ -164,7 +164,7 @@ setValidity('ffTrack', function(object){
 
             if (!file.exists(ff::filename(object@.ffaux[[i]]))){
                 problems = c(problems, 'ffaux file is missing')
-            }else if (normalizePath(paste(object@.ff.filename, '.', i, sep = '')) != normalizePath(ff::filename(object@.ffaux[[i]]))){
+            } else if (normalizePath(paste(object@.ff.filename, '.', i, sep = '')) != normalizePath(ff::filename(object@.ffaux[[i]]))){
                 problems = c(problems, 'ffaux object filename not compatible with .ff.filename')
             }
         }
@@ -221,19 +221,20 @@ setMethod('show', 'ffTrack', function(object){
 #' @export
 #' @author Marcin Imielinski
 setGeneric('size', function(object) standardGeneric('size'))
-setMethod('size', 'ffTrack', function(object)
-          {
-            fn = object@.ff.filename
+setMethod('size', 'ffTrack', function(object){
+    fn = object@.ff.filename
 
-            sz = as.numeric(file.info(fn)$size / 1e6)
+    sz = as.numeric(file.info(fn)$size / 1e6)
 
-             if (length(object@.ffaux)>0)
-               {
-                 fn = sapply(object@.ffaux, filename)
-                 sz = sz + sum(as.numeric(file.info(fn)$size)) / 1e6
-               }
-            return(sz)
-          })
+    if (length(object@.ffaux)>0){
+        fn = sapply(object@.ffaux, filename)
+        sz = sz + sum(as.numeric(file.info(fn)$size)) / 1e6
+    }
+    return(sz)
+})
+
+
+
 
 #' @name vmode
 #' @title vmode
@@ -245,7 +246,8 @@ setMethod('size', 'ffTrack', function(object)
 #' @author Marcin Imielinski
 setGeneric('vmode', function(x) standardGeneric('vmode'))
 setMethod('vmode', 'ffTrack', function(x){
-          x@.vmode})
+    x@.vmode
+})
 
 
 #' @name length
@@ -257,7 +259,8 @@ setMethod('vmode', 'ffTrack', function(x){
 #' @export
 #' @author Marcin Imielinski
 setMethod('length', 'ffTrack', function(x){
-          sum(as.numeric(width(x@.gr)))})
+    sum(as.numeric(width(x@.gr)))
+})
 
 #' @name levels
 #' @title levels
@@ -268,7 +271,8 @@ setMethod('length', 'ffTrack', function(x){
 #' @export
 #' @author Marcin Imielinski
 setMethod('levels', 'ffTrack', function(x){
-          x@.levels})
+    x@.levels
+})
 
 
 #' @name levels<-
@@ -280,19 +284,20 @@ setMethod('levels', 'ffTrack', function(x){
 #' @export
 #' @author Marcin Imielinski
 setMethod('levels<-', 'ffTrack', function(x, value){
-            if (!all(is.na(x@.levels))){
-              stop('Levels not defined in original ffTrack instantiation, please re-instantiate to add levels')
-            }
+    if (!all(is.na(x@.levels))){
+        stop('Levels not defined in original ffTrack instantiation, please re-instantiate to add levels')
+    }
 
-            if (is.vector(value) & length(value) == length(x@.levels)){
-              x@.levels = value
-            } else{
-              stop('replacement levels must be a vector of same length as current set of levels')
-            }
+    if (is.vector(value) & length(value) == length(x@.levels)){
+        x@.levels = value
+    } else{
+        stop('replacement levels must be a vector of same length as current set of levels')
+    }
 
-            validObject(x)
-            return(x)
-          })
+    validObject(x)
+    return(x)
+})
+
 
 #' @name ranges
 #' @title ranges
@@ -304,7 +309,8 @@ setMethod('levels<-', 'ffTrack', function(x, value){
 #' @author Marcin Imielinski
 setGeneric('ranges', function(x) standardGeneric('ranges'))
 setMethod('ranges', 'ffTrack', function(x){
-          x@.gr})
+    x@.gr
+})
 
 #' @name filename
 #' @title filename
@@ -316,7 +322,8 @@ setMethod('ranges', 'ffTrack', function(x){
 #' @author Marcin Imielinski
 setGeneric('filename', function(x) standardGeneric('filename'))
 setMethod('filename', 'ffTrack', function(x){
-          c(ff = x@.ff.filename, rds = x@.rds.filename)})
+    c(ff = x@.ff.filename, rds = x@.rds.filename)
+})
 
 #' @name cp
 #' @title copy ffTrack object to new path on the file system (and all data files)
@@ -326,10 +333,9 @@ setMethod('filename', 'ffTrack', function(x){
 #' @export
 #' @author Marcin Imielinski
 setGeneric('cp', function(.Object, path, overwrite = FALSE) standardGeneric('cp'))
-setMethod('cp', 'ffTrack', function(.Object, path, overwrite = FALSE)
-          {
-            return(mv(.Object, path, overwrite = overwrite, keep.original = TRUE))
-          })
+setMethod('cp', 'ffTrack', function(.Object, path, overwrite = FALSE){
+    return(mv(.Object, path, overwrite = overwrite, keep.original = TRUE))
+})
 
 
 #' @name del
@@ -340,23 +346,20 @@ setMethod('cp', 'ffTrack', function(.Object, path, overwrite = FALSE)
 #' @export
 #' @author Marcin Imielinski
 setGeneric('del', function(.Object, path, overwrite = FALSE) standardGeneric('del'))
-setMethod('del', 'ffTrack', function(.Object, path, overwrite = FALSE)
-          {
-            fdel = c(.Object@.ff.filename, .Object@.rds.filename)
-            if (length(.Object@.ffaux)>0){
-              fdel = c(fdel, sapply(.Object@.ffaux, filename))
-            }
+setMethod('del', 'ffTrack', function(.Object, path, overwrite = FALSE){
+    fdel = c(.Object@.ff.filename, .Object@.rds.filename)
+    if (length(.Object@.ffaux)>0){
+        fdel = c(fdel, sapply(.Object@.ffaux, filename))
+    }
 
-            if (any(file.exists(fdel)))
-              {
-                i = sapply(fdel, function(x) system(sprintf('rm -f %s', x)))
-                cat(sprintf('Removed files: %s\n', paste(fdel, collapse = ', ')))
-              }
-            else{
-              cat('Object files already deleted')
-            }
+    if (any(file.exists(fdel))){
+        i = sapply(fdel, function(x) system(sprintf('rm -f %s', x)))
+        cat(sprintf('Removed files: %s\n', paste(fdel, collapse = ', ')))
+    } else{
+        cat('Object files already deleted')
+    }
 
-          })
+})
 
 
 #' @name writeable<-
@@ -366,26 +369,22 @@ setMethod('del', 'ffTrack', function(.Object, path, overwrite = FALSE)
 #' @export
 #' @author Marcin Imielinski
 setGeneric('writeable<-', function(.Object, value) standardGeneric('writeable<-'))
-setMethod('writeable<-', 'ffTrack', function(.Object, value)
-          {
-            if (!is.logical(value)){
-              stop('value must be logical')
-            }
+setMethod('writeable<-', 'ffTrack', function(.Object, value){
+    if (!is.logical(value)){
+        stop('value must be logical')
+    }
 
-            if (value)
-              {
-                system(paste('chmod +w ', .Object@.ff.filename))
-                close.ff(.Object@.ff)
-                open.ff(.Object@.ff, readOnly = FALSE)
-              }
-            else
-              {
-                close.ff(.Object@.ff)
-                open.ff(.Object@.ff, readOnly = TRUE)
-              }
+    if (value){
+        system(paste('chmod +w ', .Object@.ff.filename))
+        close.ff(.Object@.ff)
+        pen.ff(.Object@.ff, readOnly = FALSE)
+    } else {
+        close.ff(.Object@.ff)
+        open.ff(.Object@.ff, readOnly = TRUE)
+    }
 
-            return(.Object)
-          })
+    return(.Object)
+})
 
 
 #' @name [
@@ -422,11 +421,7 @@ setMethod('[', 'ffTrack', function(x, i,
 
             ov = gr.findoverlaps(query, x@.gr)
 
-            if (length(ov)>0)
-              {
-##                 ov.ix.s = c(1, 1 + cumsum(width(ov))[-length(ov)])
-##                 q.ix1 = start(ov) - start(query)[ov$query.id] + ov.ix.s
-##                 q.ix2 = end(ov) - start(query)[ov$query.id] + ov.ix.s
+            if (length(ov)>0){
 
                 q.ix.s = c(1, 1 + cumsum(width(query))[-length(query)])
                 q.ix1 = start(ov) - start(query)[ov$query.id] + q.ix.s[ov$query.id]
@@ -787,7 +782,7 @@ setMethod('[<-', 'ffTrack', function(x, i, value, op = NULL, raw = TRUE, full = 
 #' @param gr \code{GRanges} of input ranges
 #' @param file.name Filename to store the genomic data
 #' @param default.val default val
-#' @param overwrite Whether to overwrite existing in the filename
+#' @param overwrite boolean Flag whether to overwrite existing in the filename
 #' @param levels Optional argument to specify unique levels for storage of factors,
 #' @param verbose Set verbosity
 #' @param vmode vmode
@@ -981,88 +976,98 @@ get_seq = function(hg, gr, unlist = TRUE, mc.cores = 1, mc.chunks = mc.cores,
 #' @param vmode character specifying vmode to use for encoding (default == 'double')
 #' @param resume logical flag specifying whether to resume the populatino of an already existing ffTrack object (default FALSE)
 #' @param min.gapwidth  minimum gap-width with which to merge reference adjacent intervals, this will mildly increase the file size but reduce the range complexity of the GRanges object; flank (to reduce the range complexity of the ffdata skeleton, but increase file size)
+#' @param overwrite boolean Flag whether to overwrite existing in the filename
 #' @return ffTrack object corresponding to the data in the BigWig file
 #' @export
 #' @author Marcin Imielinski
 bw2fft = function(bwpath,
-  fftpath = gsub('(\\.bw.*)|(\\.bigwig.*)', '.rds', bwpath),
-  region = NULL, # whether to limit to certain region (instead of whole genome)
-  chrsub = TRUE, ## whether to sub in / sub out 'chr' when accessing bigwig file
-#  mc.cores = 1, ## currently mc.cores can only be one (weird mclapply bug when running)
-  verbose = FALSE,
-  buffer = 1e5, # number of bases to access at a time
-  skip.sweep = FALSE, # if TRUE will not sweep for covered region, just make a whole genome file or a file across provided regions
-  vmode = 'double',
-  resume = FALSE,  ## in case something went wrong can update an existing file
-  min.gapwidth = 1e3 ## flank (to reduce the range complexity of the ffdata skeleton, but increase file size)
-  )
-  {
-    mc.cores = 100;
+    fftpath = gsub('(\\.bw.*)|(\\.bigwig.*)', '.rds', bwpath),
+    region = NULL, # whether to limit to certain region (instead of whole genome)
+    chrsub = TRUE, ## whether to sub in / sub out 'chr' when accessing bigwig file
+    verbose = FALSE,
+    buffer = 1e5, # number of bases to access at a time
+    skip.sweep = FALSE, # if TRUE will not sweep for covered region, just make a whole genome file or a file across provided regions
+    vmode = 'double',
+    resume = FALSE,  ## in case something went wrong can update an existing file
+    min.gapwidth = 1e3 ## flank (to reduce the range complexity of the ffdata skeleton, but increase file size)
+    )
+{
+    mc.cores = 1;
 
-    if (!is.null(region))
-      if (chrsub)
-        region = gr.fix(gr.chr(region), seqinfo(import(BigWigFile(normalizePath(bwpath)))), drop = TRUE)
+    if (!is.null(region)){
+        if (chrsub){
+            region = gr.fix(gr.chr(region), seqinfo(import(BigWigFile(normalizePath(bwpath)))), drop = TRUE)
+        }
+    }
 
-    if (!skip.sweep)
-      {
-        if (!is.null(region))
-          tiles = gr.tile(region, buffer)
-        else
-          granges = import(BigWigFile(normalizePath(bwpath)));
+    if (!skip.sweep){
+        if (!is.null(region)){
+            tiles = gr.tile(region, buffer)
+        }
+        else{
+            granges = import(BigWigFile(normalizePath(bwpath)));
+        }
  
-
-        if (verbose)
-          cat(sprintf('\nInput path %s, Output path %s, Buffer %s, min.gapwidth %s', bwpath, fftpath, buffer, min.gapwidth))
+        if (verbose){
+            cat(sprintf('\nInput path %s, Output path %s, Buffer %s, min.gapwidth %s', bwpath, fftpath, buffer, min.gapwidth))
+        }
 
         tiles = gr.tile(si2gr(GenomicRanges::seqinfo(granges)), buffer)
 
-        if (verbose)
-          cat(sprintf('\nSweeping BigWig file for covered positions across %s tiles covering %s bases with buffer size %s \n', length(tiles), sum(as.numeric(width(tiles))), buffer))
+        if (verbose){
+            cat(sprintf('\nSweeping BigWig file for covered positions across %s tiles covering %s bases with buffer size %s \n', length(tiles), sum(as.numeric(width(tiles))), buffer))
+        }
 
         ## first sweep file to find all "covered" ranges (in order to make skeleton ffTrack object)
-        covered = reduce(do.call('c', parallel::mclapply(1:length(tiles), function(x)
-          {
-            if (verbose)
-              cat(x, ' ')
+        covered = reduce(do.call('c', parallel::mclapply(1:length(tiles), function(x){
+            if (verbose){
+                cat(x, ' ')
+            }
             reduce(import.bw(bwpath, selection = tiles[x], chrsub = FALSE), min.gapwidth = min.gapwidth)
-          }, mc.cores = mc.cores)), min.gapwidth = min.gapwidth)
-      }
-    else if (!is.null(region))
-      covered = region
-    else ## assume entire seqinfo is covered
+        }, mc.cores = mc.cores)), min.gapwidth = min.gapwidth)
+    } else if (!is.null(region)){
+        covered = region
+    } else{
+      ## assume entire seqinfo is covered
       covered = si2gr(GenomicRanges::seqinfo(granges))
+    }
 
-    if (chrsub)
-      covered = gr.sub(covered, 'chr', '')
+    if (chrsub){
+        covered = gr.sub(covered, 'chr', '')
+    }
 
-    if (resume)
-      fft = readRDS(fftpath)
-    else
-      fft = ffTrack(covered, fftpath)
+    if (resume){
+        fft = readRDS(fftpath)
+    } else{
+        fft = ffTrack(covered, fftpath)
+    }
 
-    if (verbose)
-      cat(sprintf('\t.ffdata file %s has size %sM\n', ff::filename(fft)['ff'], round(file.info(ff::filename(fft)['ff'])$size/1e6, 2)))
+    if (verbose){
+        cat(sprintf('\t.ffdata file %s has size %sM\n', ff::filename(fft)['ff'], round(file.info(ff::filename(fft)['ff'])$size/1e6, 2)))
+    }
 
     covered.tile = gr.tile(covered, buffer)
 
-    if (verbose)
-      cat(sprintf('\nPopulating ffTrack at %s tiles covering %s bases with buffer size %s \n', length(covered.tile), sum(as.numeric(width(covered.tile))), buffer))
+    if (verbose){
+        cat(sprintf('\nPopulating ffTrack at %s tiles covering %s bases with buffer size %s \n', length(covered.tile), sum(as.numeric(width(covered.tile))), buffer))
+    }
 
-    parallel::mclapply(1:length(covered.tile), function(x)
-             {
-               if (verbose)
-                 cat(x, ' ')
-               tmp = import.bw(bwpath, selection = covered.tile[x], chrsub = chrsub)
-               fft[tmp] = tmp$score
-               gc()
-             }, mc.cores = mc.cores)
+    parallel::mclapply(1:length(covered.tile), function(x){
+        if (verbose){
+            cat(x, ' ')
+        }
+        tmp = import.bw(bwpath, selection = covered.tile[x], chrsub = chrsub)
+        fft[tmp] = tmp$score
+        gc()
+    }, mc.cores = mc.cores)
 
 
-    if (verbose)
-      cat('\n')
+    if (verbose){
+        cat('\n')
+    }
 
     return(fft)
-  }
+}
 
 
 
@@ -1301,9 +1306,9 @@ wig2fft = function(wigpath, fftpath = gsub('(\\.wig.*)', '.rds', wigpath), chrsu
 seq2fft = function(seq, fftpath, nnuc = 0, dict = NULL, chrsub = TRUE, neg = FALSE, region = NULL, mc.cores = 1, verbose = FALSE,
     buffer = 1e5, skip.sweep = FALSE, vmode = 'ubyte', min.gapwidth = 1e3)
 {
-    if (!inherits(seq, 'BSgenome') & !is(seq, 'ffTrack')){
-        stop('Error: Only BSGenome and ffTrack input for seq currently supported')
-    }
+    ##if (!inherits(seq, 'BSgenome') & !is(seq, 'ffTrack')){
+    ##    stop('Error: Only BSGenome and ffTrack input for seq currently supported')
+    ##}
 
     if (is.null(region)){
 

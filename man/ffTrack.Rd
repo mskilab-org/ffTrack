@@ -14,7 +14,7 @@ ffTrack(gr, file.name, default.val = NA, overwrite = FALSE, levels = NULL,
 
 \item{default.val}{default val}
 
-\item{overwrite}{Whether to overwrite existing in the filename}
+\item{overwrite}{boolean Flag whether to overwrite existing in the filename}
 
 \item{levels}{Optional argument to specify unique levels for storage of factors,}
 

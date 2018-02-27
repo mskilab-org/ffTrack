@@ -29,6 +29,8 @@ bw2fft(bwpath, fftpath = gsub("(\\\\.bw.*)|(\\\\.bigwig.*)", ".rds", bwpath),
 \item{resume}{logical flag specifying whether to resume the populatino of an already existing ffTrack object (default FALSE)}
 
 \item{min.gapwidth}{minimum gap-width with which to merge reference adjacent intervals, this will mildly increase the file size but reduce the range complexity of the GRanges object; flank (to reduce the range complexity of the ffdata skeleton, but increase file size)}
+
+\item{overwrite}{boolean Flag whether to overwrite existing in the filename}
 }
 \value{
 ffTrack object corresponding to the data in the BigWig file

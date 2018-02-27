@@ -989,7 +989,8 @@ bw2fft = function(bwpath,
     skip.sweep = FALSE, # if TRUE will not sweep for covered region, just make a whole genome file or a file across provided regions
     vmode = 'double',
     resume = FALSE,  ## in case something went wrong can update an existing file
-    min.gapwidth = 1e3 ## flank (to reduce the range complexity of the ffdata skeleton, but increase file size)
+    min.gapwidth = 1e3, ## flank (to reduce the range complexity of the ffdata skeleton, but increase file size)
+    overwrite = FALSE
     )
 {
     mc.cores = 1;
@@ -1039,7 +1040,7 @@ bw2fft = function(bwpath,
     if (resume){
         fft = readRDS(fftpath)
     } else{
-        fft = ffTrack(covered, fftpath)
+        fft = ffTrack(covered, fftpath, overwrite=overwrite)
     }
 
     if (verbose){

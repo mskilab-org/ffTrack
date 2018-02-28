@@ -249,6 +249,7 @@ test_that('wig2fft', {
 
     expect_error(wig2fft('fixedStep.wig'))
     expect_error(wig2fft('gc200.wig'))
+    
 })
 
 

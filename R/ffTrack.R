@@ -1091,11 +1091,12 @@ bw2fft = function(bwpath,
 #' @param gz stuff
 #' @param bz2 stuff
 #' @param min.gapwidth  minimum gap-width with which to merge reference adjacent intervals, this will mildly increase the file size but reduce the range complexity of the GRanges object; flank (to reduce the range complexity of the ffdata skeleton, but increase file size)
+#' @param overwrite boolean Flag whether to overwrite existing in the filename
 #' @return ffTrack object corresponding to the data in the Wig file
 #' @export
 wig2fft = function(wigpath, fftpath = gsub('(\\.wig.*)', '.rds', wigpath), chrsub = TRUE, verbose = FALSE,
     buffer = 1e5, skip.sweep = FALSE, seqlengths = hg_seqlengths(), vmode = 'double', gz = grepl('\\.gz$', wigpath),
-    bz2 = grepl('\\.bz2$', wigpath), min.gapwidth = 1e3 ){
+    bz2 = grepl('\\.bz2$', wigpath), min.gapwidth = 1e3, overwrite = FALSE){
 
     if (gz){
         grepstr = sprintf('gunzip -c %s | grep -nP "\\S+Step" ', wigpath)
@@ -1116,11 +1117,9 @@ wig2fft = function(wigpath, fftpath = gsub('(\\.wig.*)', '.rds', wigpath), chrsu
     if (all(type)){
         type = 'var' # TODO: implement variable step
         stop('Error: only fixedstep WIG currently supported')
-    }
-    else if (all(!type)){
+    } else if (all(!type)){
         type = 'fixed'
-    }
-    else{
+    } else{
         stop('Error: Input format not supported or WIG file corrupt: input WIGS must be either all variable or all fixed step')
     }
 
@@ -1168,7 +1167,7 @@ wig2fft = function(wigpath, fftpath = gsub('(\\.wig.*)', '.rds', wigpath), chrsu
                 stringsAsFactors = FALSE)
         } else if (ncol == 6){
 
-            tmp = tryCatch(matrix(unlist(strsplit(steps, '(\\:)|( )')), ncol = 5, byrow = TRUE, dimnames = list(c(), col.names)), error = function(x) NULL)
+            tmp = tryCatch(matrix(unlist(strsplit(steps, '(\\:)|( )')), ncol = 6, byrow = TRUE, dimnames = list(c(), col.names)), error = function(x) NULL)
 
             if (is.null(tmp)){
                 stop('Error: FixedStep WIG file corrupt: make sure that every declaration line has same format with 5 or 6 columns (+/- span) according to UCSC website')
@@ -1197,7 +1196,7 @@ wig2fft = function(wigpath, fftpath = gsub('(\\.wig.*)', '.rds', wigpath), chrsu
             cat(sprintf('Creating ffData with vmode %s for %s ranges spanning %s bases of sequence\n', vmode, nrow(tab), sum(tab$width)))
         }
 
-        fft = ffTrack(reduce(gr.fix(seg2gr(tab, seqlengths = NULL), seqlengths), min.gapwidth = min.gapwidth), fftpath, vmode = vmode)
+        fft = ffTrack(reduce(gr.fix(seg2gr(tab, seqlengths = NULL), seqlengths), min.gapwidth = min.gapwidth), fftpath, vmode = vmode, overwrite = overwrite)
 
         if (verbose){
             cat(sprintf('\t.ffdata file %s has size %sM\n', ff::filename(fft)['ff'], round(size(fft))))
@@ -1240,23 +1239,19 @@ wig2fft = function(wigpath, fftpath = gsub('(\\.wig.*)', '.rds', wigpath), chrsu
             curbuf = curbuf + length(tmp)
 
             if (curbuf > buffer){
-
                 if (verbose){
-                    if (((i/nrow(tab))*numpoints - last.point) > 1){
+                    if (((i/nrow(tab))*numpoints - last.point)>1){
                         cat('*')
                         last.point = last.point + 1
                     }
                 }
-
                 fft[seg2gr(tab[(last.dump+1):i, ], seqlengths = NULL)] = scores
                 last.dump = i;
 
                 curbuf = 0
                 scores = NULL
             }
-
             tmp = readLines(con, 1)
-
         }
 
         if (curbuf > 0){
@@ -1273,11 +1268,8 @@ wig2fft = function(wigpath, fftpath = gsub('(\\.wig.*)', '.rds', wigpath), chrsu
         close(con)
 
         return(fft)
-
     }
 }
-
-
 
 
 #' @name seq2fft

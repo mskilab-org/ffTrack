@@ -7,7 +7,8 @@
 wig2fft(wigpath, fftpath = gsub("(\\\\.wig.*)", ".rds", wigpath),
   chrsub = TRUE, verbose = FALSE, buffer = 1e+05, skip.sweep = FALSE,
   seqlengths = hg_seqlengths(), vmode = "double", gz = grepl("\\\\.gz$",
-  wigpath), bz2 = grepl("\\\\.bz2$", wigpath), min.gapwidth = 1000)
+  wigpath), bz2 = grepl("\\\\.bz2$", wigpath), min.gapwidth = 1000,
+  overwrite = FALSE)
 }
 \arguments{
 \item{wigpath}{path to Wig}
@@ -31,6 +32,8 @@ wig2fft(wigpath, fftpath = gsub("(\\\\.wig.*)", ".rds", wigpath),
 \item{bz2}{stuff}
 
 \item{min.gapwidth}{minimum gap-width with which to merge reference adjacent intervals, this will mildly increase the file size but reduce the range complexity of the GRanges object; flank (to reduce the range complexity of the ffdata skeleton, but increase file size)}
+
+\item{overwrite}{boolean Flag whether to overwrite existing in the filename}
 }
 \value{
 ffTrack object corresponding to the data in the Wig file

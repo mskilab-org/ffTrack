@@ -1078,7 +1078,6 @@ bw2fft = function(bwpath,
 }
 
 
-
 #' @name wig2fft 
 #' @title wig2fft 
 #' @description
@@ -1202,7 +1201,7 @@ wig2fft = function(wigpath, fftpath = gsub('(\\.wig.*)', '.rds', wigpath), chrsu
             cat(sprintf('Creating ffData with vmode %s for %s ranges spanning %s bases of sequence\n', vmode, nrow(tab), sum(tab$width)))
         }
 
-        fft = ffTrack(reduce(gr.fix(seg2gr(tab, seqlengths = NULL), seqlengths), min.gapwidth = min.gapwidth), fftpath, vmode = vmode, overwrite = overwrite)
+        fft = ffTrack(reduce(gr.fix(seg2gr(tab, seqlengths = seqlengths(ffTrack(x))), seqlengths), min.gapwidth = min.gapwidth), fftpath, vmode = vmode, overwrite = overwrite)
 
         if (verbose){
             cat(sprintf('\t.ffdata file %s has size %sM\n', ff::filename(fft)['ff'], round(size(fft))))
@@ -1217,6 +1216,7 @@ wig2fft = function(wigpath, fftpath = gsub('(\\.wig.*)', '.rds', wigpath), chrsu
         w = tab$width;
         st = tab$step
         sp = tab$span;
+        nlines =w/st
 
         if (verbose){
             numpoints = 100
@@ -1226,49 +1226,50 @@ wig2fft = function(wigpath, fftpath = gsub('(\\.wig.*)', '.rds', wigpath), chrsu
         }
 
         for (i in 1:nrow(tab)){
-            tmp = readLines(con, w[i])
-            if (vmode != 'character'){
-                tmp = as.numeric(tmp)
+          #  tmp = readLines(con, w[i])
+          tmp = readLines(con, nlines[i])
+          if (vmode != 'character'){
+            tmp = as.numeric(tmp)
+          }
+
+          if (st[i] > 1){ ## pad sequence prior to start 
+            tmp2 = rep(NA, length(tmp)*st[i])
+            tmp.st = ((1:length(tmp))-1)*st[i] + 1
+            tmp.ix = unlist(mapply(function(s, e) s:e, tmp.st, tmp.st + sp[i] - 1))
+            tmp2[tmp.ix] = tmp
+            tmp = tmp2
+          } else if (sp[i]>1){
+            tmp = rep(tmp, each = sp[i])
+          }
+
+          scores = c(scores, list(tmp))
+          curbuf = curbuf + length(tmp)
+
+          if (curbuf > buffer){
+            if (verbose){
+              if (((i/nrow(tab))*numpoints - last.point)>1){
+                cat('*')
+                last.point = last.point + 1
+              }
             }
+            fft[seg2gr(tab[(last.dump+1):i, ], seqlengths = NULL)] = scores
+            last.dump = i;
 
-            if (st[i] > 1){
-                tmp2 = rep(NA, length(tmp)*st[i])
-                tmp.st = ((1:length(tmp))-1)*st[i] + 1
-                tmp.ix = unlist(mapply(function(s, e) s:e, tmp.st, tmp.st + sp[i] - 1))
-                tmp2[tmp.ix] = tmp
-                tmp = tmp2
-            } else if (sp[i]>1){
-                tmp = rep(tmp, each = sp[i])
-            }
-
-            scores = c(scores, list(tmp))
-            curbuf = curbuf + length(tmp)
-
-            if (curbuf > buffer){
-                if (verbose){
-                    if (((i/nrow(tab))*numpoints - last.point)>1){
-                        cat('*')
-                        last.point = last.point + 1
-                    }
-                }
-                fft[seg2gr(tab[(last.dump+1):i, ], seqlengths = NULL)] = scores
-                last.dump = i;
-
-                curbuf = 0
-                scores = NULL
-            }
-            tmp = readLines(con, 1)
+            curbuf = 0
+            scores = NULL
+          }
+          tmp = readLines(con, 1)
         }
 
         if (curbuf > 0){
-            fft[seg2gr(tab[(last.dump+1):i, ], seqlengths = NULL)] = scores[[1]][i]
+          fft[seg2gr(tab[(last.dump+1):i, ], seqlengths = NULL)] = scores[[1]][i]
         }
 
         if (verbose){
-            if (((i/nrow(tab))*numpoints - last.point)>1){
-                cat('*')
-            }
-            cat('\n')
+          if (((i/nrow(tab))*numpoints - last.point)>1){
+            cat('*')
+          }
+          cat('\n')
         }
 
         close(con)
@@ -1276,6 +1277,8 @@ wig2fft = function(wigpath, fftpath = gsub('(\\.wig.*)', '.rds', wigpath), chrsu
         return(fft)
     }
 }
+
+
 
 
 #' @name seq2fft

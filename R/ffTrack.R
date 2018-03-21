@@ -121,7 +121,7 @@ setMethod('initialize', 'ffTrack', function(.Object,
     ## as factors by providing a 'character' level
     if (!(vmode %in% c('character')) & !is.null(levels)){
         .Object@.levels = levels
-    }else{
+    } else{
         .Object@.levels = NA
     }
 
@@ -154,7 +154,7 @@ setValidity('ffTrack', function(object){
 
     if (!file.exists(object@.ff.filename)){
         problems = c('ffdata file is missing')
-    }else if (normalizePath(object@.ff.filename) != normalizePath(ff::filename(object@.ff))){
+    } else if (normalizePath(object@.ff.filename) != normalizePath(ff::filename(object@.ff))){
         problems = c('ffTrack filename does not match .ffdata filename')
     }
 
@@ -545,13 +545,14 @@ building, by linking the GRanges and vmode info in this object with these .ff fi
             }
 
             ff.aux.path = c()
-            if (length(.Object@.ffaux))
+            if (length(.Object@.ffaux)){
               for (i in 1:length(.Object@.ffaux))
                 {
                   ff.aux.path[i] = paste(ff.path, '.', i, sep = '')
                   if (file.exists(ff.aux.path[i]) & !overwrite){}
                     stop('One or more of the target paths exist, rerun with overwrite = FALSE to overwrite')
                 }
+            }
 
             fstring = 'cp %s %s'
 
@@ -564,19 +565,22 @@ building, by linking the GRanges and vmode info in this object with these .ff fi
               system(sprintf(fstring, ff.path, .Object@.ff.filename))  ## reverse copy since ff already "moves" for us
             }
 
-            if (length(.Object@.ffaux)>0)
+            if (length(.Object@.ffaux)>0){
               for (i in 1:length(.Object@.ffaux))
                 {
                 ff::filename(newobj@.ffaux[[i]]) = ff.aux.path[i]
                   if (keep.original)
                     system(sprintf(fstring, ff.aux.path[i], ff::filename(.Object@.ffaux[[i]]))) ## reverse copy since ff already "moves" for us
                 }
+            }
+
 
             saveRDS(newobj, path)
             validObject(newobj)
 
             return(newobj)
-          })
+          
+})
 
 
 
@@ -619,51 +623,58 @@ setMethod('[<-', 'ffTrack', function(x, i, value, op = NULL, raw = TRUE, full = 
             if (!is.null(op))
                 {
                     ALLOWABLE.OPS = c('+', '-', '*', '/')
-                    if (!(op %in% ALLOWABLE.OPS))
+                    if (!(op %in% ALLOWABLE.OPS)){
                         stop(sprintf('op must be one of the following: %s', paste(ALLOWABLE.OPS, collapse = ',')))
+                    }
 
-                    if (vmode(x) %in% c('character') | !is.na(levels(x)))
+                    if (vmode(x) %in% c('character') | !is.na(levels(x))){
                         stop('op can only be specified for numeric ffTrack, this track is either character or factor track')
+                    }
                 }
 
-            if (!writeable(x))
+            if (!writeable(x)){
               stop('object is read only, please make writeable, by setting writeable to TRUE')
+            }
 
-            if (!is(query, 'GRanges'))
+            if (!is(query, 'GRanges')){
               stop('ffTrack index must be a GRanges')
+            }
 
             if (full)
                 {
-                    if (length(value) != sum(width(i)))
+                    if (length(value) != sum(width(i))){
                         stop("if full = TRUE then value must be of length = sum(width(ranges))")
+                    }
                 }
             else if (is.list(value))
                 {
-                    if (any(width(i) != sapply(value, length)))
+                    if (any(width(i) != sapply(value, length))){
                         stop('mismatch between widths of input GRanges and value list')
+                    }
                 }
             else
                 {
-                    if (length(value) != length(i) & length(value) != 1)
+                    if (length(value) != length(i) & length(value) != 1){
                         stop('value must be list or vector of same length as GRanges input "i", or if full = TRUE a vector of same length as sum(width(granges))')
+                    }
                 }
 
             ov = gr.findoverlaps(query, x@.gr)
 
-            if (any(ix <- (start(ov) != start(query)[ov$query.id] | end(ov) != end(query)[ov$query.id])))
+            if (any(ix <- (start(ov) != start(query)[ov$query.id] | end(ov) != end(query)[ov$query.id]))){
               warning(sprintf('Parts of %s ranges ignored', sum(ix)))
+            }
 
-            if (is.list(value) | full)
+            if (is.list(value) | full){
               values = unlist(value)
-            else
+            } else{
               values = rep(value, width(i))
+            }
 
 
             if (length(ov)>0)
               {
-#                ov.ix.s = c(1, 1 + cumsum(width(ov))[-length(ov)])
-#                q.ix1 = start(ov) - start(query)[ov$query.id] + ov.ix.s
-#                q.ix2 = end[B(ov) - start(query)[ov$query.id] + ov.ix.s
+
 
                 q.ix.s = c(1, 1 + cumsum(width(query))[-length(query)])
                 q.ix1 = start(ov) - start(query)[ov$query.id] + q.ix.s[ov$query.id]
@@ -686,23 +697,29 @@ setMethod('[<-', 'ffTrack', function(x, i, value, op = NULL, raw = TRUE, full = 
                     for (j in q.l[ix])
                       values[j] = rev(values[j])
                   }
-
-                if (!(all(is.na(x@.levels))) & !raw) ## populate as factor if levels exist and raw = FALSE
+                    ## populate as factor if levels exist and raw = FALSE
+                if (!(all(is.na(x@.levels))) & !raw) {
                   x@.ff[s.ix[!aux.ix]] = factor(values[q.ix[!aux.ix]], x@.levels)
+                }
                 else
                     {
-                        if (is.null(op))
+                        if (is.null(op)){
                             x@.ff[s.ix[!aux.ix]] = values[q.ix[!aux.ix]]
+                        }
                         else
                             {
-                                if (op == '+')
+                                if (op == '+'){
                                     x@.ff[s.ix[!aux.ix]] = x@.ff[s.ix[!aux.ix]] + values[q.ix[!aux.ix]]
-                                else if (op == '-')
+                                }
+                                else if (op == '-'){
                                     x@.ff[s.ix[!aux.ix]] = x@.ff[s.ix[!aux.ix]] - values[q.ix[!aux.ix]]
-                                else if (op == '*')
+                                }
+                                else if (op == '*'){
                                     x@.ff[s.ix[!aux.ix]] = x@.ff[s.ix[!aux.ix]] * values[q.ix[!aux.ix]]
-                                else if (op == '/')
+                                }
+                                else if (op == '/'){
                                     x@.ff[s.ix[!aux.ix]] = x@.ff[s.ix[!aux.ix]] / values[q.ix[!aux.ix]]
+                                }
                             }
                     }
 
@@ -713,29 +730,35 @@ setMethod('[<-', 'ffTrack', function(x, i, value, op = NULL, raw = TRUE, full = 
                     for (j in unique(aux.chunk))
                       {
                         tmp.ix = which(aux.chunk == j)
-
-                        if (!all(is.na(x@.levels)) & !raw) ## populate as factor if levels exist
+                        ## populate as factor if levels exist
+                        if (!all(is.na(x@.levels)) & !raw){
                           x@.ffaux[[j]][s.ix[aux.ix][tmp.ix] - j*x@.blocksize] =
                             factor(as.vector(values[q.ix[aux.ix][tmp.ix]]), x@.levels)
+                        }
                         else
                             {
-                                if (is.null(op))
+                                if (is.null(op)){
                                     x@.ffaux[[j]][s.ix[aux.ix][tmp.ix] - j*x@.blocksize] =
                                         as.vector(values[q.ix[aux.ix][tmp.ix]])
+                                }
                                 else
                                     {
-                                        if (op == '+')
+                                        if (op == '+'){
                                             x@.ffaux[[j]][s.ix[aux.ix][tmp.ix] - j*x@.blocksize] =
                                                 x@.ffaux[[j]][s.ix[aux.ix][tmp.ix] - j*x@.blocksize]  +  as.vector(values[q.ix[aux.ix][tmp.ix]])
-                                        else if (op == '-')
+                                        }
+                                        else if (op == '-'){
                                             x@.ffaux[[j]][s.ix[aux.ix][tmp.ix] - j*x@.blocksize] =
                                                 x@.ffaux[[j]][s.ix[aux.ix][tmp.ix] - j*x@.blocksize]  -  as.vector(values[q.ix[aux.ix][tmp.ix]])
-                                        else if (op == '*')
+                                        }
+                                        else if (op == '*'){
                                             x@.ffaux[[j]][s.ix[aux.ix][tmp.ix] - j*x@.blocksize] =
                                                 x@.ffaux[[j]][s.ix[aux.ix][tmp.ix] - j*x@.blocksize]  *  as.vector(values[q.ix[aux.ix][tmp.ix]])
-                                        else if (op == '/')
+                                        }
+                                        else if (op == '/'){
                                             x@.ffaux[[j]][s.ix[aux.ix][tmp.ix] - j*x@.blocksize] =
                                                 x@.ffaux[[j]][s.ix[aux.ix][tmp.ix] - j*x@.blocksize]  /  as.vector(values[q.ix[aux.ix][tmp.ix]])
+                                        }
                                     }
                             }
                       }
@@ -1050,9 +1073,6 @@ bw2fft = function(bwpath,
         fft = ffTrack(covered, fftpath, overwrite=overwrite)
     }
 
-    ## if (verbose){
-    ##     cat(sprintf('\t.ffdata file %s has size %sM\n', ff::filename(fft)['ff'], round(file.info(ff::filename(fft)['ff'])$size/1e6, 2)))
-    ## }
 
     covered.tile = gr.tile(covered, buffer)
 
@@ -1076,6 +1096,7 @@ bw2fft = function(bwpath,
 
     return(fft)
 }
+
 
 
 #' @name wig2fft 
@@ -1201,7 +1222,7 @@ wig2fft = function(wigpath, fftpath = gsub('(\\.wig.*)', '.rds', wigpath), chrsu
             cat(sprintf('Creating ffData with vmode %s for %s ranges spanning %s bases of sequence\n', vmode, nrow(tab), sum(tab$width)))
         }
 
-        fft = ffTrack(reduce(gr.fix(seg2gr(tab, seqlengths = seqlengths(ffTrack(x))), seqlengths), min.gapwidth = min.gapwidth), fftpath, vmode = vmode, overwrite = overwrite)
+        fft = ffTrack(gr = reduce(gr.fix(seg2gr(tab, seqlengths = NULL), seqlengths), min.gapwidth = min.gapwidth), fftpath, vmode = vmode, overwrite = overwrite)
 
         if (verbose){
             cat(sprintf('\t.ffdata file %s has size %sM\n', ff::filename(fft)['ff'], round(size(fft))))
@@ -1262,14 +1283,14 @@ wig2fft = function(wigpath, fftpath = gsub('(\\.wig.*)', '.rds', wigpath), chrsu
         }
 
         if (curbuf > 0){
-          fft[seg2gr(tab[(last.dump+1):i, ], seqlengths = NULL)] = scores[[1]][i]
+            fft[seg2gr(tab[(last.dump+1):i, ], seqlengths = NULL)] = scores[[1]][i]
         }
 
         if (verbose){
-          if (((i/nrow(tab))*numpoints - last.point)>1){
-            cat('*')
-          }
-          cat('\n')
+            if (((i/nrow(tab))*numpoints - last.point)>1){
+                cat('*')
+            }
+            cat('\n')
         }
 
         close(con)
@@ -1347,7 +1368,7 @@ seq2fft = function(seq, fftpath, nnuc = 0, dict = NULL, chrsub = TRUE, neg = FAL
         ##}
 
         fft = fftpath ## append to existing fftpath
-    }else{
+    } else{
 
         if (verbose){
             cat(sprintf('Making ffTrack for genome %s spanning %s MB of sequence\n', attributes(seq)$seqs_pkgname, round(sum(as.numeric(width(region)))/1e6, 2)))

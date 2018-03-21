@@ -246,9 +246,11 @@ test_that('bw2fft', {
 ### wig2fft
 test_that('wig2fft', {
 
-    expect_error(wig2fft('fixedStep.wig'), NA)
+    expect_error(wig2fft('fixedStep.wig', overwrite=TRUE), NA)
     foo = wig2fft('fixedStep.wig', overwrite=TRUE)
-##    expect_error(wig2fft('gc200.wig'))
+    output = readRDS('fixedStep.rds')
+    expect_equal(width(ranges(output)), 10)
+    ##    expect_error(wig2fft('gc200.wig'))
     
 })
 

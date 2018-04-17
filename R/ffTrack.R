@@ -900,7 +900,7 @@ ffTrack = function(gr, file.name, default.val = NA, overwrite = FALSE, levels = 
 #' @param verbose boolean Flag to increase verbosity (default = FALSE)
 #' @return DNAStringSet of sequences
 #' @export
-get_seq = function(hg, gr, unlist = TRUE, mc.cores = 1, mc.chunks = mc.cores,
+get_seq = function(hg, gr, unlist = TRUE, mc.cores = 1, mc.chunks = mc.cores, add.chr = FALSE,
                    as.data.table = FALSE, verbose = FALSE)
 {
     if (inherits(gr, 'GRangesList')){

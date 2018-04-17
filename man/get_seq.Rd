@@ -5,7 +5,7 @@
 \title{get_seq}
 \usage{
 get_seq(hg, gr, unlist = TRUE, mc.cores = 1, mc.chunks = mc.cores,
-  as.data.table = FALSE, verbose = FALSE)
+  add.chr = FALSE, as.data.table = FALSE, verbose = FALSE)
 }
 \arguments{
 \item{hg}{A BSgenome or and ffTrack object with levels = c('A','T','G','C','N')}

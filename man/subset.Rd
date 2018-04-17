@@ -30,7 +30,7 @@ vmode of values must be also compatible or coercible to vmode(x)
 
 Will throw a warning if ranges in "i" are out of the "universe" of the ffTrack object.
 
-If raw = T and fft has .levels, then will populate entries directly (without factorizing)
+If raw = TRUE and fft has .levels, then will populate entries directly (without factorizing)
 
 if vmode is numeric op can equal "+", "-", "*", "/" .. and results in an update of the current entries in the
 ffTrack with op and value eg

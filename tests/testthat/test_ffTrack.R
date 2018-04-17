@@ -123,6 +123,19 @@ test_that('ffTrack', {
 })
 
 
+## test levels()
+## setMethod('levels', 'ffTrack', function(x){
+
+
+test_that('testing levels(), ffTrack method', {
+
+    gr = GRanges('1:10000-20000')
+    testff = ffTrack(gr, file.name = 'test1.rds', overwrite=TRUE)
+    foo = readRDS('test1.rds')
+    expect_equal(as.logical(levels(foo)), NA)
+ 
+}) 
+
 
 
 ## print('/home/travis/build/mskilab/ffTrack/tmp2/:   ')
@@ -251,6 +264,13 @@ test_that('wig2fft', {
     output = readRDS('fixedStep.rds')
     expect_equal(width(ranges(output)), 10)
     ##    expect_error(wig2fft('gc200.wig'))
+    ##   expect_error(wig2fft('fixedStep.wig'))
+##   expect_error(wig2fft('gc200.wig'))
+##   expect_error(wig2fft('fixedStep.wig', overwrite=TRUE), NA)
+##   foo = wig2fft('fixedStep.wig', overwrite=TRUE)
+##   output = readRDS('fixedStep.rds')
+##   expect_equal(width(ranges(output)), 10)
+##   ##    expect_error(wig2fft('gc200.wig'))
     
 })
 

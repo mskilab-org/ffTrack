@@ -1,4 +1,4 @@
-#############################################################################r
+###############################################################################
 ## Marcin Imielinski
 ## The Broad Institute of MIT and Harvard / Cancer program.
 ## marcin@broadinstitute.org
@@ -13,12 +13,12 @@
 ## under the terms of the GNU Lesser General Public License as published by
 ## the Free Software Foundation, either version 3 of the License, or
 ## (at your option) any later version.
-
+##
 ## This program is distributed in the hope that it will be useful,
 ## but WITHOUT ANY WARRANTY; without even the implied warranty of
 ## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 ## GNU General Public License for more details.
-
+##
 ## You should have received a copy of the GNU Lesser General Public License
 ## along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ###############################################################################
@@ -387,6 +387,54 @@ setMethod('writeable<-', 'ffTrack', function(.Object, value){
 })
 
 
+
+
+#if (!isGeneric('seqlengths'))
+#  setGeneric('seqlengths', function(x) standardGeneric('seqlengths'))
+
+#' @name seqlengths
+#' @title seqlengths
+#' @description
+#'
+#' size of ffTrack object
+#'
+#' @export
+#' @importFrom GenomeInfoDb seqlengths seqinfo seqlevels
+#' @author Marcin Imielinski
+setMethod('seqlengths', 'ffTrack', function(x)
+          seqlengths(x@.gr))
+
+#if (!isGeneric('seqinfo'))
+#  setGeneric('seqinfo', function(x) standardGeneric('seqinfo'))
+
+#' @name seqinfo
+#' @title seqinfo
+#' @description
+#'
+#' size of ffTrack object
+#'
+#' @export
+#' @importFrom GenomeInfoDb seqlengths seqinfo seqlevels
+#' @author Marcin Imielinski
+setMethod('seqinfo', 'ffTrack', function(x)
+          seqinfo(x@.gr))
+
+#if (!isGeneric('seqlevels'))
+# setGeneric('seqlevels', function(x) standardGeneric('seqlevels'))
+
+#' @name seqlevels
+#' @title seqlevels of ffTrack object
+#' @description
+#' seqlevels of ffTrack object
+#' @importFrom GenomeInfoDb seqlengths seqinfo seqlevels
+#' @export
+#' @author Marcin Imielinski
+setMethod('seqlevels', 'ffTrack', function(x)
+          seqlevels(x@.gr))
+
+
+
+
 #' @name [
 #' @title [
 #' @description
@@ -413,8 +461,11 @@ setMethod('[', 'ffTrack', function(x, i,
               query = grl.unlist(i)
             } else if (inherits(i, 'GRanges')){
               query = i
-            } else{
-              stop('ffTrack accessor index must be a GRanges or GRangesList')
+            } else if (inherits(i, 'character')) {
+              query = parse.gr(i, seqlengths = seqlengths(ranges(x)))
+            }
+            else {
+              stop('ffTrack accessor index must be a GRanges or GRangesList or characterstring coercible to GRanges')
             }
 
             out = rep(NA, sum(as.numeric(width(query))))
@@ -495,6 +546,8 @@ setMethod('[', 'ffTrack', function(x, i,
 setGeneric('writeable', function(.Object) standardGeneric('writeable'))
 setMethod('writeable', 'ffTrack', function(.Object) file.access(.Object@.ff.filename, 2)==0 & !is.readonly(.Object@.ff))
 
+
+
 #' @name mv
 #' @title  mv
 #' @description
@@ -516,7 +569,6 @@ setMethod('mv', 'ffTrack', function(.Object, path, overwrite = FALSE, keep.origi
                 {
                     warning('not finding source .ff filenames, but finding .ffdata files that the ffTrack in this object used to point to.  Will try re
 building, by linking the GRanges and vmode info in this object with these .ff files')
-                    #                     newobj = ffTrack(.Object@.gr, vmode = .Object@.
                 }
 
 
@@ -600,7 +652,7 @@ building, by linking the GRanges and vmode info in this object with these .ff fi
 #'
 #' Will throw a warning if ranges in "i" are out of the "universe" of the ffTrack object.
 #'
-#' If raw = T and fft has .levels, then will populate entries directly (without factorizing)
+#' If raw = TRUE and fft has .levels, then will populate entries directly (without factorizing)
 #'
 #' if vmode is numeric op can equal "+", "-", "*", "/" .. and results in an update of the current entries in the
 #' ffTrack with op and value eg
@@ -618,7 +670,12 @@ building, by linking the GRanges and vmode info in this object with these .ff fi
 ## setGeneric('[<-', function(x, i, value, op, raw, full) standardGeneric('[<-'))
 setMethod('[<-', 'ffTrack', function(x, i, value, op = NULL, raw = TRUE, full = FALSE)
           {
+
             query = i;
+            if (is.character(query))
+            {
+                query = parse.gr(query, seqlengths = seqlengths(ranges(x)))
+            }
 
             if (!is.null(op))
                 {
@@ -633,11 +690,11 @@ setMethod('[<-', 'ffTrack', function(x, i, value, op = NULL, raw = TRUE, full = 
                 }
 
             if (!writeable(x)){
-              stop('object is read only, please make writeable, by setting writeable to TRUE')
+                stop('object is read only, please make writeable, by setting writeable to TRUE')
             }
 
             if (!is(query, 'GRanges')){
-              stop('ffTrack index must be a GRanges')
+                stop('ffTrack index must be a GRanges')
             }
 
             if (full)
@@ -662,13 +719,13 @@ setMethod('[<-', 'ffTrack', function(x, i, value, op = NULL, raw = TRUE, full = 
             ov = gr.findoverlaps(query, x@.gr)
 
             if (any(ix <- (start(ov) != start(query)[ov$query.id] | end(ov) != end(query)[ov$query.id]))){
-              warning(sprintf('Parts of %s ranges ignored', sum(ix)))
+                warning(sprintf('Parts of %s ranges ignored', sum(ix)))
             }
 
             if (is.list(value) | full){
-              values = unlist(value)
+                values = unlist(value)
             } else{
-              values = rep(value, width(i))
+                values = rep(value, width(i))
             }
 
 
@@ -866,104 +923,162 @@ get_seq = function(hg, gr, unlist = TRUE, mc.cores = 1, mc.chunks = mc.cores,
             if (!all(sort(levels(hg)) == sort(c('A', 'T', 'G', 'C', 'N')))){
                 cat("ffTrack not in correct format for get_seq, levels must contain only: 'A', 'T', 'G', 'C', 'N'\n")
             }
-        } else{
-            ## only sub in 'chr' if hg is a BSGenome
-            if (!all(grepl('chr', as.character(seqnames(gr))))){
-                gr = gr.chr(gr)
+        } 
+
+        if (is.character(hg)){
+            if (!file.exists(hg)){
+                stop(hg, 'file not found')
+            }
+              
+            if (!grepl('\\.2bit$', hg)){
+                cat('Only .2bit files supported for genomes')
             }
 
-            gr = gr.fix(gr, hg)
-  
-            if (mc.cores > 1){
+            hg = TwoBitFile(hg)
+        }
 
-                ix = suppressWarnings(split(1:length(gr), 1:mc.chunks))
 
-                if (is(hg, 'ffTrack')){
+        gr = gr.fix(gr, hg)
+        if (length(odd <- setdiff(as.character(seqnames(gr)), seqlevels(seqinfo(hg))))>0){
+            stop(paste('Please correct .. one or more input loci address sequences that do not exist on the reference:', paste(sort(odd), collapse = ',')))
+        }
 
-                    mcout = mclapply(ix, function(x){
-                        tmp = hg[gr[x]]
+        ## only sub in 'chr' if hg is a BSGenome
+        if (add.chr == TRUE){
+            if (!all(grepl('chr', as.character(seqnames(gr)))) & all(grepl('chr', names(seqlengths(hg))))){
+                gr = gr.chr(gr)
+            }
+        }
 
-                        if (any(is.na(tmp))){
-                            stop('Error: ffTrack corrupt: has NA values, cannot convert to DNAString')
-                        }
+        if (mc.cores > 1){
 
-                        if (!as.data.table) {
-                            bst = Biostrings::DNAStringSet(sapply(split(tmp, as.vector(Rle(1:length(x), width(gr)[x]))), function(y) paste(y, collapse = '')))
-                            names(bst) = names(gr)[x]
-                        } else {
-                            bst = data.table(seq=sapply(split(tmp, as.vector(Rle(1:length(x), width(gr)[x]))), function(y) paste(y, collapse='')))
-                            bst[, names:=names(gr)[x]]
-                        }   
+            ix = suppressWarnings(split(1:length(gr), 1:mc.chunks))
 
-                        if (any(strand(gr)[x]=='-')){
+            if (is(hg, 'ffTrack')){
 
-                            ix.tmp = as.logical(strand(gr)[x]=='-')
-                            if (!as.data.table){
-                                bst[ix.tmp] = Biostrings::complement(bst[ix.tmp])
-                            } else{
-                                bst$seq[ix.tmp] = as.character(Biostrings::complement(DNAStringSet(bst$seq[ix.tmp])))
-                            }
-                        }
-
-                        if (verbose){
-                            cat('.')
-                        }
-
-                        return(bst)
-
-                    }, mc.cores = mc.cores)
-
-                    if (!as.data.table){
-
-                        if (length(mcout)>1){
-                            tmp = c(mcout[[1]], mcout[[2]])
-                        }
-
-                    out = do.call('c', mcout)[order(unlist(ix))]
-
-                    } else{
-                        out = rbindlist(mcout)
-                    }
-                } else{
-
-                    out = do.call('c', mclapply(ix, function(x){
-
-                        if (verbose){
-                            cat('.')
-                        }
-
-                        return(getSeq(hg, gr[x]))
-
-                    }, mc.cores = mc.cores))[order(unlist(ix))]
-
-                    if (verbose){
-                        cat('\n')
-                    }
-                }
-            } else{
-
-                if (is(hg, 'ffTrack')){
-
-                    tmp = hg[gr]
-
-                    tmp[is.na(tmp)] = 'N'
+                mcout = mclapply(ix, function(x){
+                    tmp = hg[gr[x]]
 
                     if (any(is.na(tmp))){
                         stop('Error: ffTrack corrupt: has NA values, cannot convert to DNAString')
                     }
 
-                    if (as.data.table) {
-                        bst = data.table(seq=sapply(split(tmp, as.vector(Rle(1:length(gr), width(gr)))), function(x) paste(x, collapse='')))
-                        bst[, names:=names(gr)]
+                    if (!as.data.table) {
+                        bst = Biostrings::DNAStringSet(sapply(split(tmp, as.vector(Rle(1:length(x), width(gr)[x]))), function(y) paste(y, collapse = '')))
+                        names(bst) = names(gr)[x]
                     } else {
-                        bst = DNAStringSet(sapply(split(tmp, as.numeric(Rle(1:length(gr), width(gr)))), function(x) paste(x, collapse = '')))
-                        names(bst) = names(gr)
+                        bst = data.table(seq=sapply(split(tmp, as.vector(Rle(1:length(x), width(gr)[x]))), function(y) paste(y, collapse='')))
+                        bst[, names:=names(gr)[x]]
+                    }   
+
+                    if (any(strand(gr)[x]=='-')){
+                        ix.tmp = as.logical(strand(gr)[x]=='-')
+                        if (!as.data.table){
+                            bst[ix.tmp] = Biostrings::complement(bst[ix.tmp])
+                        } else{
+                            bst$seq[ix.tmp] = as.character(Biostrings::complement(DNAStringSet(bst$seq[ix.tmp])))
+                        }
                     }
 
-                    if (any(as.character(strand(gr))=='-')){
-                        ix = as.logical(strand(gr)=='-')
+                    if (verbose){
+                        cat('.')
                     }
 
+                    return(bst)
+
+                }, mc.cores = mc.cores)
+
+                if (!as.data.table){
+
+                    if (length(mcout)>1){
+                        tmp = c(mcout[[1]], mcout[[2]])
+                    }
+
+                    out = do.call('c', mcout)[order(unlist(ix))]                         
+
+                } else{
+                    out = rbindlist(mcout)
+                }
+            } else if (is(hg, '"TwoBitFile')){
+                if (verbose){
+                    cat('Reading from 2bit file', path(hg), '\n')
+                }
+                  
+                mcout <- mclapply(ix, function(x){
+                    bst = import(hg, which = gr)
+                          
+                    if (as.data.table) {
+                        bst <- data.table(seq=sapply(split(bst$seq, as.numeric(Rle(1:length(gr), width(gr)))), function(x) paste(x, collapse='')))
+                        bst[, names:=names(gr)]
+                    }
+
+                    if (any(strand(gr)[x]=='-')){
+                        ix.tmp = as.logical(strand(gr)[x]=='-')
+                        if (!as.data.table){
+                            bst[ix.tmp] = Biostrings::reverseComplement(bst[ix.tmp])
+                        } else{
+                            bst$seq[ix.tmp] <- as.character(Biostrings::reverseComplement(DNAStringSet(bst$seq[ix.tmp])))
+                        }
+                    }
+                          
+                    if (verbose){
+                        cat('.')
+                    }
+                          
+                    return(bst)
+                }, mc.cores = mc.cores)
+
+                if (!as.data.table){
+                    if (length(mcout)>1){
+                        tmp = c(mcout[[1]], mcout[[2]])
+                    }
+                    out <- do.call('c', mcout)[order(unlist(ix))]
+
+                    ## if still a list then beat into a DNAStringSet
+                    if (class(out) == 'list'){
+                        out = eval(parse(text = paste('c(', paste0("mcout[[", 1:length(mcout), "]]", collapse = ','), ')')))[order(unlist(ix))]                              
+                    }
+                } else{
+                    out <- rbindlist(mcout)
+                }      
+            } else{
+
+                out = do.call('c', mclapply(ix, function(x){
+
+                    if (verbose){
+                        cat('.')
+                    }
+                    return(getSeq(hg, gr[x]))
+
+                }, mc.cores = mc.cores))[order(unlist(ix))]
+
+                if (verbose){
+                    cat('\n')
+                }
+            }
+        } else{
+
+            if (is(hg, 'ffTrack')){
+
+                tmp = hg[gr]
+
+                tmp[is.na(tmp)] = 'N'
+
+                if (any(is.na(tmp))){
+                    stop('Error: ffTrack corrupt: has NA values, cannot convert to DNAString')
+                }
+
+                if (as.data.table) {
+                    bst = data.table(seq=sapply(split(tmp, as.vector(Rle(1:length(gr), width(gr)))), function(x) paste(x, collapse='')))
+                    bst[, names:=names(gr)]
+                } else {
+                    bst = DNAStringSet(sapply(split(tmp, as.numeric(Rle(1:length(gr), width(gr)))), function(x) paste(x, collapse = '')))
+                    names(bst) = names(gr)
+                }
+
+                if (any(as.character(strand(gr))=='-')){
+                    ix = as.logical(strand(gr)=='-')
+        
                     if (!as.data.table) {
                         bstc = as.character(bst)
                         bstc[ix] = as.character(Biostrings::complement(bst[ix]))
@@ -972,20 +1087,51 @@ get_seq = function(hg, gr, unlist = TRUE, mc.cores = 1, mc.chunks = mc.cores,
                     } else {
                         bst$seq[ix] = as.character(Biostrings::complement(DNAStringSet(bst$seq[ix])))
                     }
-
-                    return(bst)
-                } else{
-                    out = getSeq(hg, gr)
                 }
+
+                return(bst)
+            } else if (inherits(hg, 'TwoBitFile')){
+                if (verbose){
+                    cat('Reading from 2bit file', path(hg), '\n')
+                }
+
+                bst = as.character(import(hg, which = gr))
+                  
+                if (as.data.table) {
+                    bst <- data.table(seq=sapply(split(bst, as.vector(Rle(1:length(gr), width(gr)))), function(x) paste(x, collapse='')))
+                    bst[, names:=names(gr)]
+                }
+                  
+                if (any(strand(gr)=='-')){
+                    ix.tmp = as.logical(strand(gr)=='-')
+                    if (!as.data.table){
+                        bst[ix.tmp] = as.character(Biostrings::reverseComplement(DNAStringSet(bst[ix.tmp])))
+                    } else{
+                        bst$seq[ix.tmp] <- as.character(Biostrings::reverseComplement(DNAStringSet(bst$seq[ix.tmp])))
+                    }
+                }
+                  
+                if (verbose){
+                    cat('.')
+                }
+
+                if (!as.data.table){
+                    bst = DNAStringSet(bst)
+                }
+
+                return(bst)
+
+            } else{
+                out = getSeq(hg, gr)
             }
-
-            return(out)
-
         }
+
+        return(out)
     }
 }
 
 
+      
 
 
 #' @name bw2fft
@@ -1034,8 +1180,7 @@ bw2fft = function(bwpath,
     if (!skip.sweep){
         if (!is.null(region)){
             tiles = gr.tile(region, buffer)
-        }
-        else{
+        } else{
             granges = import(BigWigFile(normalizePath(bwpath)));
         }
  
@@ -1120,8 +1265,10 @@ bw2fft = function(bwpath,
 #' @param overwrite boolean Flag whether to overwrite existing in the filename
 #' @return ffTrack object corresponding to the data in the Wig file
 #' @export
-wig2fft = function(wigpath, fftpath = gsub('(\\.wig.*)', '.rds', wigpath), chrsub = TRUE, verbose = FALSE,
-    buffer = 1e5, skip.sweep = FALSE, seqlengths = hg_seqlengths(), vmode = 'double', gz = grepl('\\.gz$', wigpath),
+wig2fft = function(wigpath, fftpath = gsub('(\\.wig.*)', '.rds', wigpath), 
+    chrsub = TRUE, verbose = FALSE,
+    buffer = 1e5, skip.sweep = FALSE, seqlengths = hg_seqlengths(), 
+    vmode = 'double', gz = grepl('\\.gz$', wigpath),
     bz2 = grepl('\\.bz2$', wigpath), min.gapwidth = 1e3, overwrite = FALSE){
 
     if (gz){
@@ -1222,7 +1369,7 @@ wig2fft = function(wigpath, fftpath = gsub('(\\.wig.*)', '.rds', wigpath), chrsu
             cat(sprintf('Creating ffData with vmode %s for %s ranges spanning %s bases of sequence\n', vmode, nrow(tab), sum(tab$width)))
         }
 
-        fft = ffTrack(gr = reduce(gr.fix(seg2gr(tab, seqlengths = NULL), seqlengths), min.gapwidth = min.gapwidth), fftpath, vmode = vmode, overwrite = overwrite)
+        fft = ffTrack(reduce(gr.fix(seg2gr(tab, seqlengths = seqlengths(ffTrack(x))), seqlengths), min.gapwidth = min.gapwidth), fftpath, vmode = vmode, overwrite = overwrite)
 
         if (verbose){
             cat(sprintf('\t.ffdata file %s has size %sM\n', ff::filename(fft)['ff'], round(size(fft))))
@@ -1330,6 +1477,14 @@ wig2fft = function(wigpath, fftpath = gsub('(\\.wig.*)', '.rds', wigpath), chrsu
 seq2fft = function(seq, fftpath, nnuc = 0, dict = NULL, chrsub = TRUE, neg = FALSE, region = NULL, mc.cores = 1, verbose = FALSE,
     buffer = 1e5, skip.sweep = FALSE, vmode = 'ubyte', min.gapwidth = 1e3)
 {
+
+    if (is.character(seq)){
+        isTwoBit = grepl("\\.2bit$", seq)
+        if (isTwoBit){
+            seq = TwoBitFile(seq)
+        }
+    }
+
     ##if (!inherits(seq, 'BSgenome') & !is(seq, 'ffTrack')){
     ##    stop('Error: Only BSGenome and ffTrack input for seq currently supported')
     ##}
@@ -1363,9 +1518,9 @@ seq2fft = function(seq, fftpath, nnuc = 0, dict = NULL, chrsub = TRUE, neg = FAL
 
     if (is(fftpath, 'ffTrack')){
       
-        ##if (verbose){
-        ##    cat(sprintf('Populating ffTrack with filename %s with %s MB of sequence\n', ff::filename(fftpath)['rds'], round(sum(as.numeric(width(region)))/1e6, 2)))
-        ##}
+        if (verbose){
+            cat(sprintf('Populating ffTrack with filename %s with %s MB of sequence\n', ff::filename(fftpath)['rds'], round(sum(as.numeric(width(region)))/1e6, 2)))
+        }
 
         fft = fftpath ## append to existing fftpath
     } else{

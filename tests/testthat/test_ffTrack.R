@@ -246,8 +246,10 @@ test_that('bw2fft', {
     foobar = bw2fft(smallbw, mc.cores=2, overwrite = TRUE, verbose=TRUE)
     expect_equal(basename(filename(foobar))[1], 'output.ffdata')
     expect_equal(basename(filename(foobar))[2], 'output.rds')
-    expect_error(bw2fft(smallbw, region = GRanges('1:500-600'), mc.cores=2, overwrite = TRUE, verbose=TRUE)
-)
+    expect_error(bw2fft(smallbw, region = GRanges('1:500-600'), mc.cores=2, overwrite = TRUE, verbose=TRUE))
+    foo = bw2fft(smallbw, mc.cores=2, overwrite = TRUE, verbose=TRUE, resume = TRUE, chrsub = TRUE)
+    expect_equal(basename(filename(foo))[1], 'output.ffdata')
+    expect_equal(basename(filename(foo))[2], 'output.rds')   
 
 })
 

@@ -35,7 +35,7 @@ setOldClass('ff_vector')
 #' Class \code{ffTrack} a pointer for rapid GRanges-based access to genomic data on disk.
 #'
 #' @import GenomicRanges
-#' @importFrom ff ff is.readonly close.ff open.ff
+#' @importFrom ff ff is.readonly
 #' @importFrom methods setClass setGeneric setMethod setRefClass
 #' @importFrom S4Vectors Rle
 #' @importFrom Biostrings DNAStringSet

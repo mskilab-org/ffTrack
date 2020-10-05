@@ -10,7 +10,6 @@ Description: ffTrack allows building of objects of large genomically-indexed bas
 Remotes:
     github::mskilab/gUtils,
     bioc::3.10/BSgenome,
-    bioc::3.10/BSgenome.Hsapiens.UCSC.hg19,
     bioc::3.10/S4Vectors,
     bioc::3.10/GenomicRanges,
     bioc::3.10/GenomeInfoDb,
@@ -32,7 +31,6 @@ Imports:
     BSgenome
 Suggests: 
     testthat,
-    BSgenome.Hsapiens.UCSC.hg19, 
     covr
 License: GPL-2
 BugReports: http://github.com/mskilab/ffTrack/issues

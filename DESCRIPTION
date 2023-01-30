@@ -13,7 +13,8 @@ biocViews:
   bioc::3.10/GenomicRanges,
   bioc::3.10/GenomeInfoDb,
   bioc::3.10/Biostrings,
-  bioc::3.10/rtracklayer
+  bioc::3.10/rtracklayer,
+  bioc::3.10/BSgenome.Hsapiens.UCSC.hg19
 Remotes:
   github::mskilab/gUtils
 Depends:

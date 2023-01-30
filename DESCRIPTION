@@ -33,7 +33,8 @@ Imports:
   BSgenome
 Suggests: 
   testthat,
-  covr
+  covr,
+  BSgenome.Hsapiens.UCSC.hg19
 License: GPL-2
 BugReports: http://github.com/mskilab/ffTrack/issues
 LazyData: true

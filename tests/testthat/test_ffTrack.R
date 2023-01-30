@@ -209,6 +209,7 @@ test_that('checking [<- ', {
 test_that('get_seq', {
 
     library(BSgenome)
+    library(BSgenome.Hsapiens.UCSC.hg19)
     hg19 = getBSgenome('BSgenome.Hsapiens.UCSC.hg19')
     gr = GRanges('1:10000-20000')
     seqlevelsStyle(gr) = 'UCSC'  ### convert to chr1
@@ -313,6 +314,8 @@ test_that('wig2fft', {
 test_that('seq2fft works', {
 
     ## default
+    library(BSgenome)
+    library(BSgenome.Hsapiens.UCSC.hg19)
     hg19 = getBSgenome('BSgenome.Hsapiens.UCSC.hg19')
     gr = GRanges('1:10000-20000')
     ## seq2fft(hg19)  fails

@@ -7,31 +7,34 @@ Description: ffTrack allows building of objects of large genomically-indexed bas
     resolution sequence or numeric data for quasi-random out of memory access.
     ffTrack objects are indexable using GRanges from GenomicRanges package.
     Underlying files are written as .ffData objects using the ff package.
+biocViews:
+  bioc::3.10/BSgenome,
+  bioc::3.10/S4Vectors,
+  bioc::3.10/GenomicRanges,
+  bioc::3.10/GenomeInfoDb,
+  bioc::3.10/Biostrings,
+  bioc::3.10/rtracklayer,
+  bioc::3.10/BSgenome.Hsapiens.UCSC.hg19
 Remotes:
-    github::mskilab/gUtils,
-    bioc::3.10/BSgenome,
-    bioc::3.10/S4Vectors,
-    bioc::3.10/GenomicRanges,
-    bioc::3.10/GenomeInfoDb,
-    bioc::3.10/Biostrings,
-    bioc::3.10/rtracklayer
+  github::mskilab/gUtils
 Depends:
-    R (>= 3.1.0),
-    gUtils (>= 0.1),
-    ff (>= 2.2)
+  R (>= 3.6.1),
+  gUtils (>= 0.1),
+  ff (>= 2.2)
 Imports:
-    rtracklayer (>= 1.32),
-    data.table,
-    Biostrings,
-    parallel,
-    methods,
-    GenomeInfoDb,
-    S4Vectors,
-    GenomicRanges (>= 1.24), 
-    BSgenome
+  rtracklayer (>= 1.32),
+  data.table,
+  Biostrings,
+  parallel,
+  methods,
+  GenomeInfoDb,
+  S4Vectors,
+  GenomicRanges (>= 1.24),
+  BSgenome
 Suggests: 
-    testthat,
-    covr
+  testthat,
+  covr,
+  BSgenome.Hsapiens.UCSC.hg19
 License: GPL-2
 BugReports: http://github.com/mskilab/ffTrack/issues
 LazyData: true

@@ -454,9 +454,10 @@ setMethod('seqlevels', 'ffTrack', function(x)
 #' @author Marcin Imielinski
 setMethod('[', 'ffTrack', function(x, i,
                                    gr = FALSE, ## if T will return GRanges with field $score populated w values
-                                   raw = FALSE ## if T will not convert raw data to levels (if levels exist)
+                                   raw = FALSE, ## if T will not convert raw data to levels (if levels exist)
+                                   ..., drop = FALSE
                                    )
-          {
+          { 
             if (inherits(i, 'GRangesList')){
               query = grl.unlist(i)
             } else if (inherits(i, 'GRanges')){
@@ -668,7 +669,7 @@ building, by linking the GRanges and vmode info in this object with these .ff fi
 #' @export
 #' @author Marcin Imielinski
 ## setGeneric('[<-', function(x, i, value, op, raw, full) standardGeneric('[<-'))
-setMethod('[<-', 'ffTrack', function(x, i, value, op = NULL, raw = TRUE, full = FALSE)
+setMethod('[<-', 'ffTrack', function(x, i, j, op = NULL, raw = TRUE, full = FALSE, value)
           {
 
             query = i;

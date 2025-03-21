@@ -4,9 +4,21 @@
 \alias{seq2fft}
 \title{seq2fft}
 \usage{
-seq2fft(seq, fftpath, nnuc = 0, dict = NULL, chrsub = TRUE, neg = FALSE,
-  region = NULL, mc.cores = 1, verbose = FALSE, buffer = 1e+05,
-  skip.sweep = FALSE, vmode = "ubyte", min.gapwidth = 1000)
+seq2fft(
+  seq,
+  fftpath,
+  nnuc = 0,
+  dict = NULL,
+  chrsub = TRUE,
+  neg = FALSE,
+  region = NULL,
+  mc.cores = 1,
+  verbose = FALSE,
+  buffer = 1e+05,
+  skip.sweep = FALSE,
+  vmode = "ubyte",
+  min.gapwidth = 1000
+)
 }
 \arguments{
 \item{seq}{BSGenome object, ffTrack object representing genomic sequence, or (not yet supported) FASTA file}

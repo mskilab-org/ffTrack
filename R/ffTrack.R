@@ -34,12 +34,6 @@ setOldClass('ff_vector')
 #'
 #' Class \code{ffTrack} a pointer for rapid GRanges-based access to genomic data on disk.
 #'
-#' @import GenomicRanges
-#' @importFrom ff ff is.readonly
-#' @importFrom methods setClass setGeneric setMethod setRefClass
-#' @importFrom S4Vectors Rle
-#' @importFrom Biostrings DNAStringSet
-#' @importFrom GenomeInfoDb seqlengths seqinfo seqlevels
 #' @exportClass ffTrack
 #' @author Marcin Imielinski
 setClass('ffTrack', representation(.ff = 'ff_vector', ## primary ff object
@@ -399,7 +393,6 @@ setMethod('writeable<-', 'ffTrack', function(.Object, value){
 #' size of ffTrack object
 #'
 #' @export
-#' @importFrom GenomeInfoDb seqlengths seqinfo seqlevels
 #' @author Marcin Imielinski
 setMethod('seqlengths', 'ffTrack', function(x)
           seqlengths(x@.gr))
@@ -414,7 +407,6 @@ setMethod('seqlengths', 'ffTrack', function(x)
 #' size of ffTrack object
 #'
 #' @export
-#' @importFrom GenomeInfoDb seqlengths seqinfo seqlevels
 #' @author Marcin Imielinski
 setMethod('seqinfo', 'ffTrack', function(x)
           seqinfo(x@.gr))
@@ -426,7 +418,6 @@ setMethod('seqinfo', 'ffTrack', function(x)
 #' @title seqlevels of ffTrack object
 #' @description
 #' seqlevels of ffTrack object
-#' @importFrom GenomeInfoDb seqlengths seqinfo seqlevels
 #' @export
 #' @author Marcin Imielinski
 setMethod('seqlevels', 'ffTrack', function(x)
@@ -452,9 +443,9 @@ setMethod('seqlevels', 'ffTrack', function(x)
 #'
 #' @export
 #' @author Marcin Imielinski
-setMethod('[', 'ffTrack', function(x, i,
-                                   gr = FALSE, ## if T will return GRanges with field $score populated w values
-                                   raw = FALSE ## if T will not convert raw data to levels (if levels exist)
+setMethod('[', 'ffTrack', function(x, i, j, gr = FALSE, ## if T will return GRanges with field $score populated w values
+                                   raw = FALSE, ## if T will not convert raw data to levels (if levels exist)
+                                   drop = FALSE
                                    )
           {
             if (inherits(i, 'GRangesList')){
@@ -668,7 +659,7 @@ building, by linking the GRanges and vmode info in this object with these .ff fi
 #' @export
 #' @author Marcin Imielinski
 ## setGeneric('[<-', function(x, i, value, op, raw, full) standardGeneric('[<-'))
-setMethod('[<-', 'ffTrack', function(x, i, value, op = NULL, raw = TRUE, full = FALSE)
+setMethod('[<-', 'ffTrack', function(x, i, op = NULL, raw = TRUE, full = FALSE, value)
           {
 
             query = i;
@@ -1140,7 +1131,6 @@ get_seq = function(hg, gr, unlist = TRUE, mc.cores = 1, mc.chunks = mc.cores, ad
 #'
 #' Creates ffTrack object from input bigwig file.
 #'
-#' @import rtracklayer
 #' @param bwpath path to BigWig
 #' @param fftpath path to ffTrack .rds that will be created by this (by default .bw is replaced by .rds)
 #' @param region GRanges specifying regions to limit ffTrack computation to (default is whole genome, ie seqnames of BigWig file); whether to limit to certain region (instead of whole genome)
@@ -1250,7 +1240,6 @@ bw2fft = function(bwpath,
 #'
 #' Creates ffTrack object from input .wig file
 #'
-#' @import rtracklayer
 #' @param wigpath path to Wig
 #' @param fftpath path to ffTrack .rds that will be created by this (by default .bw is replaced by .rds)
 #' @param chrsub whether to sub out 'chr' in seqnames / seqlevels of Wig object
@@ -1457,7 +1446,6 @@ wig2fft = function(wigpath, fftpath = gsub('(\\.wig.*)', '.rds', wigpath),
 #'
 #' ## will either convert (1) raw sequence (2) k-nucleotide context centered around base or (3) motifs defined by some dictionary (anchored at first base) into leveled ffTrack (i.e. integer track with populated levels field)
 #'
-#' @import rtracklayer
 #' @param seq BSGenome object, ffTrack object representing genomic sequence, or (not yet supported) FASTA file
 #' @param fftpath path to ffTrack .rds that will be created by this 
 #' @param nnuc how many nucleotides to left and right to enumerate
@@ -1616,8 +1604,6 @@ seq2fft = function(seq, fftpath, nnuc = 0, dict = NULL, chrsub = TRUE, neg = FAL
 #' @param chunksize chunk of FF to bring into memory (i.e. the width of interval), decrease if memory becomes an issue
 #' @param verbose logical flag
 #' @param na.rm logical flag whether to remove na during aggregation.
-#' @importFrom data.table rbindlist data.table setkey :=
-#' @importFrom gUtils gr.sub seg2gr gr.stripstrand si2gr rle.query gr.fix gr.chr gr.tile grl.unlist gr.findoverlaps gr.dice hg_seqlengths
 #' @export
 fftab = function(ff, intervals, signatures = NULL, FUN = sum, grep = FALSE, mc.cores = 1, chunksize = 1e6, verbose = TRUE, na.rm = TRUE)
 {

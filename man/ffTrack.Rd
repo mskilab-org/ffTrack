@@ -4,8 +4,16 @@
 \alias{ffTrack}
 \title{ffTrack}
 \usage{
-ffTrack(gr, file.name, default.val = NA, overwrite = FALSE, levels = NULL,
-  verbose = FALSE, vmode = "double", ...)
+ffTrack(
+  gr,
+  file.name,
+  default.val = NA,
+  overwrite = FALSE,
+  levels = NULL,
+  verbose = FALSE,
+  vmode = "double",
+  ...
+)
 }
 \arguments{
 \item{gr}{\code{GRanges} of input ranges}

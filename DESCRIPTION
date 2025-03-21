@@ -38,4 +38,4 @@ Suggests:
 License: GPL-2
 BugReports: http://github.com/mskilab/ffTrack/issues
 LazyData: true
-RoxygenNote: 7.1.1
+RoxygenNote: 7.3.2

@@ -4,8 +4,17 @@
 \alias{fftab}
 \title{Tabulate data in an \code{ffTrack}}
 \usage{
-fftab(ff, intervals, signatures = NULL, FUN = sum, grep = FALSE,
-  mc.cores = 1, chunksize = 1e+06, verbose = TRUE, na.rm = TRUE)
+fftab(
+  ff,
+  intervals,
+  signatures = NULL,
+  FUN = sum,
+  grep = FALSE,
+  mc.cores = 1,
+  chunksize = 1e+06,
+  verbose = TRUE,
+  na.rm = TRUE
+)
 }
 \arguments{
 \item{ff}{ffTrack or RleList to pull data from}
